@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --color-enganda-green: #0F5132;
+  --color-enganda-emerald: #10B981;
+  --color-enganda-gold: #D97706;
+  --color-enganda-terracotta: #C55A11;
+  --color-enganda-slate: #1E293B;
+  --color-enganda-cream: #F8FAFC;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-body);
+    background-color: #f8fafc;
+    color: #1e293b;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+}

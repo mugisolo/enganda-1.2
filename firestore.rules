@@ -1,0 +1,381 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // 1. GLOBAL SAFETY NET (Default-Deny Catch-All)
+    // =========================================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // =========================================================================
+    // 2. REUSABLE HARDENED PRIMITIVES
+    // =========================================================================
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isVerified() && (
+        request.auth.token.email == 'mugisolo@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // =========================================================================
+    // 3. ENTITY VALIDATION BLUEPRINTS (Anti-Update-Gap)
+    // =========================================================================
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'role', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'displayName', 'role', 'organization', 'createdAt', 'updatedAt']) &&
+        data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 && data.uid.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 254 &&
+        data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120 &&
+        data.role is string && data.role in ['donor', 'partner', 'member'] &&
+        (!('organization' in data) || (data.organization is string && data.organization.size() <= 160)) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidAdminRecord(data) {
+      return data.keys().hasAll(['uid', 'email', 'grantedAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'grantedAt']) &&
+        data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 && data.uid.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 254 &&
+        data.grantedAt is timestamp;
+    }
+
+    function isValidYouthGroup(data) {
+      return data.keys().hasAll([
+          'id', 'name', 'division', 'location', 'memberCount', 'womenPercentage',
+          'trade', 'stage', 'bankAccount', 'treesPlanted', 'leaderName', 'leaderPhone',
+          'createdBy', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'name', 'division', 'location', 'memberCount', 'womenPercentage',
+          'trade', 'stage', 'bankAccount', 'treesPlanted', 'leaderName', 'leaderPhone',
+          'createdBy', 'createdAt', 'updatedAt'
+        ]) &&
+        data.id is string && data.id.size() >= 1 && data.id.size() <= 64 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.name is string && data.name.size() >= 2 && data.name.size() <= 140 &&
+        data.division is string && data.division.size() >= 2 && data.division.size() <= 80 &&
+        data.location is string && data.location.size() >= 2 && data.location.size() <= 140 &&
+        data.memberCount is number && data.memberCount >= 1 && data.memberCount <= 5000 &&
+        data.womenPercentage is number && data.womenPercentage >= 0 && data.womenPercentage <= 100 &&
+        data.trade is string && data.trade.size() >= 2 && data.trade.size() <= 120 &&
+        data.stage is string && data.stage in ['Formalized & Banked', 'In Incubation', 'Skilling Phase'] &&
+        data.bankAccount is string && data.bankAccount.size() >= 2 && data.bankAccount.size() <= 100 &&
+        data.treesPlanted is number && data.treesPlanted >= 0 && data.treesPlanted <= 1000000 &&
+        data.leaderName is string && data.leaderName.size() >= 2 && data.leaderName.size() <= 120 &&
+        data.leaderPhone is string && data.leaderPhone.size() >= 5 && data.leaderPhone.size() <= 30 &&
+        data.createdBy is string && data.createdBy.size() >= 1 && data.createdBy.size() <= 128 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidTransaction(data) {
+      return data.keys().hasAll([
+          'id', 'userId', 'reference', 'relworxBatchId', 'amount', 'currency',
+          'provider', 'phoneNumber', 'donorName', 'purpose', 'treesSponsored',
+          'status', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'userId', 'reference', 'relworxBatchId', 'amount', 'currency',
+          'provider', 'phoneNumber', 'donorName', 'purpose', 'treesSponsored',
+          'status', 'createdAt', 'updatedAt'
+        ]) &&
+        data.id is string && data.id.size() >= 1 && data.id.size() <= 64 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+        data.reference is string && data.reference.size() >= 3 && data.reference.size() <= 64 &&
+        data.relworxBatchId is string && data.relworxBatchId.size() >= 3 && data.relworxBatchId.size() <= 64 &&
+        data.amount is number && data.amount >= 500 && data.amount <= 5000000000 &&
+        data.currency is string && data.currency in ['UGX', 'USD'] &&
+        data.provider is string && data.provider in ['MTN', 'AIRTEL'] &&
+        data.phoneNumber is string && data.phoneNumber.size() >= 5 && data.phoneNumber.size() <= 30 &&
+        data.donorName is string && data.donorName.size() >= 1 && data.donorName.size() <= 120 &&
+        data.purpose is string && data.purpose.size() >= 2 && data.purpose.size() <= 200 &&
+        data.treesSponsored is number && data.treesSponsored >= 0 && data.treesSponsored <= 1000000 &&
+        data.status is string && data.status in ['PENDING', 'SUCCESSFUL', 'FAILED'] &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidPartnerInquiry(data) {
+      return data.keys().hasAll([
+          'id', 'userId', 'organizationName', 'contactPerson', 'email',
+          'phone', 'partnershipType', 'message', 'status', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'userId', 'organizationName', 'contactPerson', 'email',
+          'phone', 'partnershipType', 'message', 'status', 'createdAt', 'updatedAt'
+        ]) &&
+        data.id is string && data.id.size() >= 1 && data.id.size() <= 64 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+        data.organizationName is string && data.organizationName.size() >= 2 && data.organizationName.size() <= 160 &&
+        data.contactPerson is string && data.contactPerson.size() >= 2 && data.contactPerson.size() <= 120 &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 254 &&
+        data.phone is string && data.phone.size() <= 30 &&
+        data.partnershipType is string && data.partnershipType.size() >= 2 && data.partnershipType.size() <= 120 &&
+        data.message is string && data.message.size() <= 2000 &&
+        data.status is string && data.status in ['NEW', 'REVIEWED', 'ARCHIVED'] &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidInvestment(data) {
+      return data.keys().hasAll([
+          'id', 'userId', 'investmentRef', 'investorName', 'email', 'phone',
+          'investorType', 'targetGroup', 'commitmentAmount', 'currency',
+          'status', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'userId', 'investmentRef', 'investorName', 'email', 'phone',
+          'investorType', 'targetGroup', 'commitmentAmount', 'currency',
+          'status', 'createdAt', 'updatedAt'
+        ]) &&
+        data.id is string && data.id.size() >= 1 && data.id.size() <= 64 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+        data.investmentRef is string && data.investmentRef.size() >= 3 && data.investmentRef.size() <= 64 &&
+        data.investorName is string && data.investorName.size() >= 2 && data.investorName.size() <= 140 &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 254 &&
+        data.phone is string && data.phone.size() <= 30 &&
+        data.investorType is string && data.investorType.size() >= 2 && data.investorType.size() <= 120 &&
+        data.targetGroup is string && data.targetGroup.size() >= 2 && data.targetGroup.size() <= 160 &&
+        data.commitmentAmount is number && data.commitmentAmount >= 100 && data.commitmentAmount <= 100000000000 &&
+        data.currency is string && data.currency in ['UGX', 'USD'] &&
+        data.status is string && data.status in ['PLEDGED', 'UNDER_REVIEW', 'CLEARED'] &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidSiteSettings(data) {
+      return data.keys().hasAll([
+          'intakeOpen', 'intakeBatchName', 'bannerNoticeEn', 'bannerNoticeLg',
+          'nationalTargetYouth', 'contactHotline', 'relworxGatewayActive', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'intakeOpen', 'intakeBatchName', 'bannerNoticeEn', 'bannerNoticeLg',
+          'nationalTargetYouth', 'contactHotline', 'relworxGatewayActive', 'updatedAt'
+        ]) &&
+        data.intakeOpen is bool &&
+        data.intakeBatchName is string && data.intakeBatchName.size() >= 2 && data.intakeBatchName.size() <= 160 &&
+        data.bannerNoticeEn is string && data.bannerNoticeEn.size() >= 2 && data.bannerNoticeEn.size() <= 500 &&
+        data.bannerNoticeLg is string && data.bannerNoticeLg.size() >= 2 && data.bannerNoticeLg.size() <= 500 &&
+        data.nationalTargetYouth is number && data.nationalTargetYouth >= 1000 && data.nationalTargetYouth <= 50000000 &&
+        data.contactHotline is string && data.contactHotline.size() >= 5 && data.contactHotline.size() <= 40 &&
+        data.relworxGatewayActive is bool &&
+        data.updatedAt is timestamp;
+    }
+
+    // =========================================================================
+    // 4. COLLECTION MATCH BLOCKS
+    // =========================================================================
+
+    // Collection: /users/{userId} (PII Isolated to Owner or Admin)
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+
+      allow create: if isVerified() &&
+        isValidId(userId) &&
+        isOwner(userId) &&
+        isValidUserProfile(incoming()) &&
+        incoming().uid == request.auth.uid &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isVerified() &&
+        isValidId(userId) &&
+        isValidUserProfile(incoming()) &&
+        incoming().uid == existing().uid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time && (
+          isAdmin() ||
+          (isOwner(userId) && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'role', 'organization', 'updatedAt']))
+        );
+
+      allow delete: if isAdmin() && isValidId(userId);
+    }
+
+    // Collection: /admins/{adminId}
+    match /admins/{adminId} {
+      allow get: if isValidId(adminId) && (isOwner(adminId) || isAdmin());
+      allow list: if isAdmin();
+
+      allow create: if isAdmin() &&
+        isValidId(adminId) &&
+        isValidAdminRecord(incoming()) &&
+        incoming().uid == adminId &&
+        incoming().grantedAt == request.time;
+
+      allow update: if isAdmin() &&
+        isValidId(adminId) &&
+        isValidAdminRecord(incoming()) &&
+        incoming().uid == existing().uid &&
+        incoming().grantedAt == existing().grantedAt &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['email']);
+
+      allow delete: if isAdmin() && isValidId(adminId);
+    }
+
+    // Collection: /groups/{groupId} (Public Pilot Directory, Authenticated Creation & Tiered Updates)
+    match /groups/{groupId} {
+      allow get: if isValidId(groupId);
+      allow list: if resource.data.memberCount >= 0;
+
+      allow create: if isVerified() &&
+        isValidId(groupId) &&
+        isValidYouthGroup(incoming()) &&
+        incoming().id == groupId &&
+        incoming().createdBy == request.auth.uid &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isVerified() &&
+        isValidId(groupId) &&
+        isValidYouthGroup(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().createdBy == existing().createdBy &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time && (
+          isAdmin() ||
+          (existing().createdBy == request.auth.uid &&
+            incoming().stage == existing().stage &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'name', 'division', 'location', 'memberCount', 'womenPercentage',
+              'trade', 'leaderName', 'leaderPhone', 'treesPlanted', 'updatedAt'
+            ])
+          )
+        );
+
+      allow delete: if isAdmin() && isValidId(groupId);
+    }
+
+    // Collection: /transactions/{transactionId} (Per-User Scoped Financial Records)
+    match /transactions/{transactionId} {
+      allow get: if isSignedIn() && isValidId(transactionId) && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+
+      allow create: if isVerified() &&
+        isValidId(transactionId) &&
+        isValidTransaction(incoming()) &&
+        incoming().id == transactionId &&
+        incoming().userId == request.auth.uid &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isVerified() &&
+        isValidId(transactionId) &&
+        isValidTransaction(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().userId == existing().userId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (existing().status != 'SUCCESSFUL' || isAdmin()) && (
+          isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+        );
+
+      allow delete: if false;
+    }
+
+    // Collection: /inquiries/{inquiryId} (Per-User Scoped Partner Dossiers)
+    match /inquiries/{inquiryId} {
+      allow get: if isSignedIn() && isValidId(inquiryId) && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+
+      allow create: if isVerified() &&
+        isValidId(inquiryId) &&
+        isValidPartnerInquiry(incoming()) &&
+        incoming().id == inquiryId &&
+        incoming().userId == request.auth.uid &&
+        incoming().status == 'NEW' &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isVerified() &&
+        isValidId(inquiryId) &&
+        isValidPartnerInquiry(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().userId == existing().userId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (existing().status != 'ARCHIVED' || isAdmin()) && (
+          isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+        );
+
+      allow delete: if isAdmin() && isValidId(inquiryId);
+    }
+
+    // Collection: /investments/{investmentId} (Per-User Scoped Capital Commitments)
+    match /investments/{investmentId} {
+      allow get: if isSignedIn() && isValidId(investmentId) && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+
+      allow create: if isVerified() &&
+        isValidId(investmentId) &&
+        isValidInvestment(incoming()) &&
+        incoming().id == investmentId &&
+        incoming().userId == request.auth.uid &&
+        incoming().status == 'PLEDGED' &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isVerified() &&
+        isValidId(investmentId) &&
+        isValidInvestment(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().userId == existing().userId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (existing().status != 'CLEARED' || isAdmin()) && (
+          isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+        );
+
+      allow delete: if isAdmin() && isValidId(investmentId);
+    }
+
+    // Collection: /settings/{settingId} (Public Read, Admin-Only Write)
+    match /settings/{settingId} {
+      allow get: if isValidId(settingId);
+      allow list: if resource.data.nationalTargetYouth >= 0;
+
+      allow create: if isAdmin() &&
+        isValidId(settingId) &&
+        isValidSiteSettings(incoming()) &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isAdmin() &&
+        isValidId(settingId) &&
+        isValidSiteSettings(incoming()) &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'intakeOpen', 'intakeBatchName', 'bannerNoticeEn', 'bannerNoticeLg',
+          'nationalTargetYouth', 'contactHotline', 'relworxGatewayActive', 'updatedAt'
+        ]);
+
+      allow delete: if false;
+    }
+  }
+}

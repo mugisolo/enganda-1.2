@@ -1,0 +1,509 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated user profile for donors, institutional partners, and youth group leaders.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID matching the document ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Verified email address of the user.",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Full name or organization representative name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "role": {
+          "type": "string",
+          "description": "Portal role assigned to the user.",
+          "enum": ["donor", "partner", "member"],
+          "minLength": 4,
+          "maxLength": 20
+        },
+        "organization": {
+          "type": "string",
+          "description": "Optional group name or partner institution.",
+          "minLength": 0,
+          "maxLength": 160
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the profile was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the profile was last updated."
+        }
+      },
+      "required": ["uid", "email", "displayName", "role", "createdAt", "updatedAt"]
+    },
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Trusted administrator registry document keyed by UID.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "grantedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "grantedAt"]
+    },
+    "YouthGroup": {
+      "title": "YouthGroup",
+      "description": "Formalized or incubating youth economic unit in Uganda.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 140
+        },
+        "division": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "location": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 140
+        },
+        "memberCount": {
+          "type": "number",
+          "description": "Number of youth members under 30 (1 to 5000)."
+        },
+        "womenPercentage": {
+          "type": "number",
+          "description": "Female participation percentage (0 to 100)."
+        },
+        "trade": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "stage": {
+          "type": "string",
+          "enum": ["Formalized & Banked", "In Incubation", "Skilling Phase"],
+          "minLength": 5,
+          "maxLength": 40
+        },
+        "bankAccount": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "treesPlanted": {
+          "type": "number",
+          "description": "Number of lakeshore trees planted by this group."
+        },
+        "leaderName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "leaderPhone": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 30
+        },
+        "createdBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "division",
+        "location",
+        "memberCount",
+        "womenPercentage",
+        "trade",
+        "stage",
+        "bankAccount",
+        "treesPlanted",
+        "leaderName",
+        "leaderPhone",
+        "createdBy",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PaymentTransaction": {
+      "title": "PaymentTransaction",
+      "description": "Relworx Mobile Money contribution or tree sponsorship record.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "reference": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 64
+        },
+        "relworxBatchId": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 64
+        },
+        "amount": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string",
+          "enum": ["UGX", "USD"],
+          "minLength": 3,
+          "maxLength": 3
+        },
+        "provider": {
+          "type": "string",
+          "enum": ["MTN", "AIRTEL"],
+          "minLength": 3,
+          "maxLength": 10
+        },
+        "phoneNumber": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 30
+        },
+        "donorName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 200
+        },
+        "treesSponsored": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["PENDING", "SUCCESSFUL", "FAILED"],
+          "minLength": 6,
+          "maxLength": 15
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "reference",
+        "relworxBatchId",
+        "amount",
+        "currency",
+        "provider",
+        "phoneNumber",
+        "donorName",
+        "purpose",
+        "treesSponsored",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PartnerInquiry": {
+      "title": "PartnerInquiry",
+      "description": "Institutional partnership inquiry submitted by banks, DFIs, or EU partners.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "organizationName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 160
+        },
+        "contactPerson": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 30
+        },
+        "partnershipType": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "message": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["NEW", "REVIEWED", "ARCHIVED"],
+          "minLength": 3,
+          "maxLength": 15
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "organizationName",
+        "contactPerson",
+        "email",
+        "phone",
+        "partnershipType",
+        "message",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "InvestmentCommitment": {
+      "title": "InvestmentCommitment",
+      "description": "Capital commitment pledge from direct funds, impact investors, diaspora, or corporate ESG.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "investmentRef": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 64
+        },
+        "investorName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 140
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 30
+        },
+        "investorType": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "targetGroup": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 160
+        },
+        "commitmentAmount": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string",
+          "enum": ["UGX", "USD"],
+          "minLength": 3,
+          "maxLength": 3
+        },
+        "status": {
+          "type": "string",
+          "enum": ["PLEDGED", "UNDER_REVIEW", "CLEARED"],
+          "minLength": 6,
+          "maxLength": 20
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "investmentRef",
+        "investorName",
+        "email",
+        "phone",
+        "investorType",
+        "targetGroup",
+        "commitmentAmount",
+        "currency",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SiteSettings": {
+      "title": "SiteSettings",
+      "description": "Global platform configuration and bilingual banner notices managed by admins.",
+      "type": "object",
+      "properties": {
+        "intakeOpen": {
+          "type": "boolean"
+        },
+        "intakeBatchName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 160
+        },
+        "bannerNoticeEn": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 500
+        },
+        "bannerNoticeLg": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 500
+        },
+        "nationalTargetYouth": {
+          "type": "number"
+        },
+        "contactHotline": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 40
+        },
+        "relworxGatewayActive": {
+          "type": "boolean"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "intakeOpen",
+        "intakeBatchName",
+        "bannerNoticeEn",
+        "bannerNoticeLg",
+        "nationalTargetYouth",
+        "contactHotline",
+        "relworxGatewayActive",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profiles containing PII (email, displayName, role) strictly isolated to owner or admin."
+    },
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/AdminRecord" },
+      "description": "Registry of administrator UIDs."
+    },
+    "/groups/{groupId}": {
+      "schema": { "$ref": "#/entities/YouthGroup" },
+      "description": "Public directory of formalized and incubating youth cooperative groups."
+    },
+    "/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/PaymentTransaction" },
+      "description": "Per-user Relworx Mobile Money contribution and tree sponsorship records."
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": { "$ref": "#/entities/PartnerInquiry" },
+      "description": "Per-user institutional partnership dossiers."
+    },
+    "/investments/{investmentId}": {
+      "schema": { "$ref": "#/entities/InvestmentCommitment" },
+      "description": "Per-user capital allocation pledges."
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/SiteSettings" },
+      "description": "Global platform configuration and bilingual announcement banners."
+    }
+  }
+}

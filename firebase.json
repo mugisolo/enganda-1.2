@@ -1,0 +1,7 @@
+{
+  "firestore": {
+    "database": "ai-studio-engandayouthecon-1b136350-2eca-4c1e-b985-fe82f2e08b28",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

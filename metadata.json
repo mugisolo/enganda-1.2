@@ -1,0 +1,6 @@
+{
+  "name": "Enganda - Youth Economic Transformation Platform",
+  "description": "Ugandan social enterprise platform transitioning 2,000,000 informal sector youth into formalized, bankable, and structured economic units across Entebbe and Uganda.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
