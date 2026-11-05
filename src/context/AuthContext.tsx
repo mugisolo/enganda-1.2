@@ -1,72 +1,94 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db, signInWithGoogle, logOutUser } from '../services/firebase';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth, signInWithGoogle, logOutUser } from '../services/firebase';
 
-export interface UserProfileData {
+export interface AuthenticatedSession {
   uid: string;
   email: string;
   displayName: string;
-  role: 'donor' | 'partner' | 'member';
-  organization?: string;
 }
 
 interface AuthContextValue {
-  user: User | null;
-  profile: UserProfileData | null;
+  user: AuthenticatedSession | null;
   authReady: boolean;
-  isAdmin: boolean;
+  isGlobalAdmin: boolean;
+  assignedGroupIds: string[];
+  hasGroupAccess: boolean;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
+  refreshAccess: () => Promise<void>;
+  getAuthHeaders: () => Record<string, string>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   user: null,
-  profile: null,
   authReady: false,
-  isAdmin: false,
+  isGlobalAdmin: false,
+  assignedGroupIds: [],
+  hasGroupAccess: false,
   signIn: async () => {},
   signOut: async () => {},
+  refreshAccess: async () => {},
+  getAuthHeaders: () => ({}),
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfileData | null>(null);
+  const [user, setUser] = useState<AuthenticatedSession | null>(null);
   const [authReady, setAuthReady] = useState<boolean>(false);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isGlobalAdmin, setIsGlobalAdmin] = useState<boolean>(false);
+  const [assignedGroupIds, setAssignedGroupIds] = useState<string[]>([]);
+
+  const syncWithBackendSession = useCallback(async (sessionUser: AuthenticatedSession | null) => {
+    if (!sessionUser || !sessionUser.email) {
+      setIsGlobalAdmin(false);
+      setAssignedGroupIds([]);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-email': sessionUser.email,
+          'x-user-uid': sessionUser.uid,
+        },
+        body: JSON.stringify({
+          email: sessionUser.email,
+          uid: sessionUser.uid,
+          displayName: sessionUser.displayName,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setIsGlobalAdmin(Boolean(data.isGlobalAdmin));
+        setAssignedGroupIds(Array.isArray(data.assignedGroupIds) ? data.assignedGroupIds : []);
+      }
+    } catch (err) {
+      console.error('[ENGANDA Auth] Failed to sync session:', err);
+    }
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      if (firebaseUser) {
-        const isBootstrappedAdmin =
-          firebaseUser.email === 'mugisolo@gmail.com' && firebaseUser.emailVerified;
-        setIsAdmin(isBootstrappedAdmin);
-
-        try {
-          const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
-          if (snap.exists()) {
-            setProfile(snap.data() as UserProfileData);
-          } else {
-            setProfile({
-              uid: firebaseUser.uid,
-              email: firebaseUser.email || '',
-              displayName: firebaseUser.displayName || 'Enganda Member',
-              role: 'donor',
-            });
-          }
-        } catch (err) {
-          console.error('Error loading user profile from Firestore:', err);
-        }
+      if (firebaseUser && firebaseUser.email) {
+        const sessionData: AuthenticatedSession = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email.toLowerCase(),
+          displayName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+        };
+        setUser(sessionData);
+        await syncWithBackendSession(sessionData);
       } else {
-        setProfile(null);
-        setIsAdmin(false);
+        setUser(null);
+        setIsGlobalAdmin(false);
+        setAssignedGroupIds([]);
       }
       setAuthReady(true);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [syncWithBackendSession]);
 
   const handleSignIn = async () => {
     await signInWithGoogle();
@@ -74,17 +96,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleSignOut = async () => {
     await logOutUser();
+    setUser(null);
+    setIsGlobalAdmin(false);
+    setAssignedGroupIds([]);
   };
+
+  const refreshAccess = async () => {
+    if (user) {
+      await syncWithBackendSession(user);
+    }
+  };
+
+  const getAuthHeaders = useCallback((): Record<string, string> => {
+    if (!user || !user.email) return {};
+    return {
+      'x-user-email': user.email,
+      'x-user-uid': user.uid,
+    };
+  }, [user]);
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        profile,
         authReady,
-        isAdmin,
+        isGlobalAdmin,
+        assignedGroupIds,
+        hasGroupAccess: isGlobalAdmin || assignedGroupIds.length > 0,
         signIn: handleSignIn,
         signOut: handleSignOut,
+        refreshAccess,
+        getAuthHeaders,
       }}
     >
       {children}

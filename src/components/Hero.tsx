@@ -1,146 +1,197 @@
 import React from 'react';
-import { useLanguage } from '../context/LanguageContext';
-import { HERO_IMAGE, GANDA_LOGO } from '../data/content';
-import { ArrowRight, Sprout, Building2, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Network, ShieldCheck, Users, Layers, Building2 } from 'lucide-react';
+import { HERO_IMAGE } from '../data/content';
+import { SupportEnquiryPreset } from '../types';
 
 interface HeroProps {
-  onOpenPartnerModal: () => void;
-  onOpenRegisterModal: () => void;
-  onOpenPaymentModal: () => void;
+  totalProfiles: number;
+  memberGroupsCount: number;
+  totalMemberRecords: number;
+  onOpenSupportModal: (preset?: SupportEnquiryPreset) => void;
+  onOpenAdminModal: () => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({
-  onOpenPartnerModal,
-  onOpenRegisterModal,
-  onOpenPaymentModal,
+  totalProfiles,
+  memberGroupsCount,
+  totalMemberRecords,
+  onOpenSupportModal,
+  onOpenAdminModal,
 }) => {
-  const { t, language } = useLanguage();
-  const heroT = t.hero;
-
   return (
-    <section className="relative overflow-hidden bg-white border-b border-slate-200 pt-8 pb-12 sm:pt-14 sm:pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        
-        {/* Split Hero: Two-column layout with equal height stretch */}
+    <section
+      id="home"
+      className="relative bg-[#0B2B1E] text-white overflow-hidden border-b border-emerald-900"
+    >
+      {/* Subtle editorial grid texture */}
+      <div
+        className="absolute inset-0 opacity-10 pointer-events-none"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 2px 2px, rgba(167, 243, 208, 0.35) 1px, transparent 0)',
+          backgroundSize: '32px 32px',
+        }}
+      />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 lg:pt-20 lg:pb-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          
-          {/* Left Column: Proposition, Value, Action */}
-          <div className="lg:col-span-7 flex flex-col justify-center">
-            
-            {/* Clean unboxed editorial kicker */}
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-800 mb-3">
-              <span>{heroT.kicker}</span>
-              <span aria-hidden="true" className="text-slate-300">·</span>
-              <span className="text-amber-700">
-                {language === 'lg' ? 'Omulimu gw’e Ntebbe Gukola' : 'Entebbe Pilot Active'}
-              </span>
+          {/* Left Editorial Column (7 cols) */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-emerald-900/90 border border-emerald-700/60 text-amber-300 text-xs font-bold uppercase tracking-[0.14em]">
+              <Network className="w-3.5 h-3.5 shrink-0" />
+              <span>ENGANDA Umbrella Organisation • Entebbe, Uganda</span>
             </div>
 
-            {/* Dominant Headline */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-extrabold tracking-tight text-slate-900 leading-[1.12] mb-6">
-              {heroT.headline}
+            <h1 className="text-3xl sm:text-5xl lg:text-[3.25rem] font-extrabold tracking-tight leading-[1.12] font-['Plus_Jakarta_Sans',sans-serif] text-white">
+              Connecting Community Groups to{' '}
+              <span className="text-amber-400">Skills, Structure, Finance</span> & Responsible
+              Partnerships.
             </h1>
 
-            {/* Subheadline with measure 65-75ch */}
-            <p className="text-base sm:text-lg text-slate-600 max-w-2xl leading-relaxed mb-8">
-              {heroT.subheadline}
+            <p className="text-base sm:text-lg text-emerald-100/90 leading-[1.7] max-w-2xl">
+              <strong className="text-white font-semibold">ENGANDA</strong> serves as the trusted
+              institutional umbrella uniting community SACCOs, youth savings associations, trade
+              cooperatives, and flagship programmes—including{' '}
+              <strong className="text-amber-300 font-semibold">SIZ Football Academy</strong>,{' '}
+              <strong className="text-amber-300 font-semibold">EGYA Association</strong>, and{' '}
+              <strong className="text-amber-300 font-semibold">LeoLeo</strong>—into visible,
+              accountable economic units.
             </p>
 
-            {/* Action Group */}
-            <div className="flex flex-wrap items-center gap-3.5 mb-10">
-              <button
-                onClick={onOpenPartnerModal}
-                className="inline-flex items-center gap-2 px-6 py-3.5 text-sm font-semibold text-white bg-emerald-800 rounded-lg hover:bg-emerald-700 active:bg-emerald-900 transition-all shadow-sm"
+            {/* Primary Actions */}
+            <div className="pt-2 flex flex-wrap items-center gap-3.5">
+              <a
+                href="#directory"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm shadow-lg transition-all min-h-[46px]"
               >
-                <span>{heroT.ctaPrimary}</span>
+                <span>Explore 15 Network Profiles</span>
                 <ArrowRight className="w-4 h-4" />
-              </button>
+              </a>
 
               <button
-                onClick={onOpenRegisterModal}
-                className="inline-flex items-center gap-2 px-5 py-3.5 text-sm font-semibold text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors"
+                type="button"
+                onClick={() =>
+                  onOpenSupportModal({
+                    groupId: 'grp-egya',
+                    groupName: 'EGYA Association',
+                    supportType: 'Partner',
+                  })
+                }
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-emerald-900/90 hover:bg-emerald-800 text-white font-bold text-sm border border-emerald-700 transition-all cursor-pointer min-h-[46px]"
               >
-                <Building2 className="w-4 h-4 text-emerald-700" />
-                <span>{heroT.ctaSecondary}</span>
+                <span>Partner, Sponsor or Invest</span>
               </button>
 
-              <button
-                onClick={onOpenPaymentModal}
-                className="inline-flex items-center gap-2 px-4 py-3.5 text-sm font-medium text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors"
+              <a
+                href="#about-network"
+                className="inline-flex items-center justify-center px-4 py-3.5 rounded-xl text-emerald-200 hover:text-white font-semibold text-sm underline underline-offset-4 transition-colors"
               >
-                <Sprout className="w-4 h-4 text-amber-600" />
-                <span>{heroT.ctaTertiary}</span>
-              </button>
-            </div>
-
-            {/* Trust Signals & Institutional Anchor */}
-            <div className="pt-6 border-t border-slate-100 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-500">
-              <span className="flex items-center gap-1.5 font-medium text-slate-700">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                EcoBank Commercial Accounts
-              </span>
-              <span aria-hidden="true" className="text-slate-300">·</span>
-              <span>Relworx MTN & Airtel MoMo Gateway</span>
-              <span aria-hidden="true" className="text-slate-300">·</span>
-              <span>Entebbe Municipal Council Concession</span>
+                View Network Architecture
+              </a>
             </div>
           </div>
 
-          {/* Right Column: High-Impact Photography Carrier with Official Protocol Badge */}
+          {/* Right Visual Editorial Column (5 cols) */}
           <div className="lg:col-span-5">
-            <div className="relative rounded-2xl overflow-hidden border border-slate-200/80 shadow-md bg-slate-900 group">
+            <div className="relative rounded-2xl overflow-hidden border border-emerald-700/60 bg-slate-900 shadow-2xl">
               <img
                 src={HERO_IMAGE}
-                alt="Young Ugandan youth craft and leather artisans working collaboratively with tools and digital tablets in Entebbe"
-                className="w-full h-[380px] sm:h-[440px] lg:h-[480px] object-cover transition-transform duration-500 group-hover:scale-102"
-                referrerPolicy="no-referrer"
+                alt="ENGANDA Community Artisans and Youth Groups in Entebbe"
+                className="w-full h-[360px] sm:h-[420px] object-cover object-center brightness-90"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
-              
-              {/* Overlay Protocol Stamp */}
-              <div className="absolute top-4 right-4 bg-slate-900/80 backdrop-blur-md rounded-xl p-2 border border-slate-700 flex items-center gap-2">
-                <img
-                  src={GANDA_LOGO}
-                  alt="Ganda Trust Protocol"
-                  className="w-7 h-7 object-contain"
-                />
-                <div className="text-left">
-                  <span className="text-[10px] font-bold text-white block leading-tight">GANDA PROTOCOL</span>
-                  <span className="text-[9px] text-emerald-300 block font-mono">Entebbe Anchor</span>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#071D14] via-[#071D14]/35 to-transparent flex flex-col justify-between p-5 sm:p-6">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="px-3 py-1 rounded-md bg-slate-950/80 backdrop-blur-md border border-white/15 text-[11px] font-bold uppercase tracking-wider text-emerald-300">
+                    Umbrella Governance
+                  </span>
+                  <span className="px-3 py-1 rounded-md bg-amber-500/95 text-slate-950 text-[11px] font-extrabold uppercase tracking-wider">
+                    Entebbe Network
+                  </span>
                 </div>
-              </div>
 
-              <div className="absolute bottom-0 inset-x-0 p-5 text-white">
-                <div className="text-xs uppercase tracking-wider text-amber-400 font-semibold mb-1">
-                  Entebbe Youth Craft & Tech Hub
+                <div className="bg-slate-950/90 backdrop-blur-md border border-emerald-800/70 rounded-xl p-4 space-y-2">
+                  <div className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                    Network Architecture
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                    Connecting <strong className="text-white">SIZ Football Academy</strong>,{' '}
+                    <strong className="text-white">EGYA Association</strong>,{' '}
+                    <strong className="text-white">LeoLeo</strong>, and community SACCOs to
+                    verified governance and responsible partnerships.
+                  </p>
                 </div>
-                <p className="text-sm font-medium text-slate-200">
-                  {language === 'lg'
-                    ? 'Kitoro ne Kigungu · Ebibiina ebiwandiikiddwa mu mateeka nga birina akawunti mu EcoBank.'
-                    : 'Kitoro & Kigungu Artisan Cluster · Structured into legal cooperatives with EcoBank savings ledgers.'}
-                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Live Metric Ribbon: 4-column KPI strip below hero split */}
-        <div className="mt-14 pt-10 border-t border-slate-200 grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-          {heroT.metrics.map((metric, idx) => (
-            <div key={idx} className="flex flex-col">
-              <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-mono tabular-nums">
-                {metric.value}
+        {/* Editorial Network Key Figures Bar */}
+        <div className="mt-12 pt-8 border-t border-emerald-800/70 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="bg-emerald-950/70 border border-emerald-800/70 rounded-xl p-5">
+            <div className="flex items-center justify-between text-emerald-300 mb-1.5">
+              <span className="text-xs font-bold uppercase tracking-wider">
+                Public Network Profiles
               </span>
-              <span className="text-sm font-semibold text-emerald-800 mt-1">
-                {metric.label}
-              </span>
-              <span className="text-xs text-slate-500 mt-0.5">
-                {metric.detail}
-              </span>
+              <Layers className="w-4 h-4 text-amber-400" />
             </div>
-          ))}
-        </div>
+            <div className="text-3xl font-extrabold text-white tabular-nums">{totalProfiles}</div>
+            <p className="text-xs text-emerald-200/80 mt-1">
+              13 Member Groups + SIZ & LeoLeo Programmes
+            </p>
+          </div>
 
+          <div className="bg-emerald-950/70 border border-emerald-800/70 rounded-xl p-5">
+            <div className="flex items-center justify-between text-emerald-300 mb-1.5">
+              <span className="text-xs font-bold uppercase tracking-wider">
+                Supplied Member Records
+              </span>
+              <Users className="w-4 h-4 text-amber-400" />
+            </div>
+            <div className="text-3xl font-extrabold text-amber-400 tabular-nums">
+              {totalMemberRecords.toLocaleString()}
+            </div>
+            <p className="text-xs text-emerald-200/80 mt-1">
+              Reconciled across {memberGroupsCount} community groups & SACCOs
+            </p>
+          </div>
+
+          <div className="bg-emerald-950/70 border border-emerald-800/70 rounded-xl p-5">
+            <div className="flex items-center justify-between text-emerald-300 mb-1.5">
+              <span className="text-xs font-bold uppercase tracking-wider">
+                Operating Framework
+              </span>
+              <Building2 className="w-4 h-4 text-amber-400" />
+            </div>
+            <div className="text-xl sm:text-2xl font-extrabold text-white mt-1">
+              Organise → Formalise → Grow
+            </div>
+            <p className="text-xs text-emerald-200/80 mt-1">
+              Human capacity, economic structure & civic agency
+            </p>
+          </div>
+
+          <div className="bg-emerald-950/70 border border-emerald-800/70 rounded-xl p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between text-emerald-300 mb-1.5">
+                <span className="text-xs font-bold uppercase tracking-wider">
+                  Data Privacy Standard
+                </span>
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              </div>
+              <div className="text-lg font-extrabold text-white">Server-Enforced RBAC</div>
+              <p className="text-xs text-emerald-200/80 mt-1">
+                Public views expose zero private member PII
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenAdminModal}
+              className="mt-3 text-left text-xs font-bold text-amber-300 hover:text-amber-200 underline cursor-pointer"
+            >
+              Open Authorised Registry Console &rarr;
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   );

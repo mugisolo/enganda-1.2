@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="16" fill="#0F5132" />
+  <!-- Outer trusted umbrella ring -->
+  <circle cx="32" cy="32" r="21" stroke="#34D399" stroke-width="2" stroke-dasharray="4 3" opacity="0.55" />
+  <!-- Radial network spokes -->
+  <g stroke="#FBBF24" stroke-width="2.2" stroke-linecap="round">
+    <line x1="32" y1="32" x2="32" y2="11" />
+    <line x1="32" y1="32" x2="50.2" y2="21.5" />
+    <line x1="32" y1="32" x2="50.2" y2="42.5" />
+    <line x1="32" y1="32" x2="32" y2="53" />
+    <line x1="32" y1="32" x2="13.8" y2="42.5" />
+    <line x1="32" y1="32" x2="13.8" y2="21.5" />
+  </g>
+  <!-- Connected group nodes -->
+  <circle cx="32" cy="11" r="4.2" fill="#FFFFFF" stroke="#0F5132" stroke-width="1.5" />
+  <circle cx="50.2" cy="21.5" r="4.2" fill="#34D399" stroke="#0F5132" stroke-width="1.5" />
+  <circle cx="50.2" cy="42.5" r="4.2" fill="#FFFFFF" stroke="#0F5132" stroke-width="1.5" />
+  <circle cx="32" cy="53" r="4.2" fill="#34D399" stroke="#0F5132" stroke-width="1.5" />
+  <circle cx="13.8" cy="42.5" r="4.2" fill="#FFFFFF" stroke="#0F5132" stroke-width="1.5" />
+  <circle cx="13.8" cy="21.5" r="4.2" fill="#34D399" stroke="#0F5132" stroke-width="1.5" />
+  <!-- Central ENGANDA umbrella hub -->
+  <circle cx="32" cy="32" r="8.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="2.2" />
+  <circle cx="32" cy="32" r="3.2" fill="#0F5132" />
+</svg>

@@ -1,51 +1,103 @@
-export type Language = 'en' | 'lg';
+export type ProgrammeType =
+  | 'Community SACCO'
+  | 'Savings & Youth Association'
+  | 'Cooperative & Trade Group'
+  | 'Flagship Programme';
 
-export interface YouthGroup {
+export interface SponsorshipPackage {
   id: string;
   name: string;
-  division: string;
-  location: string;
-  memberCount: number;
-  womenPercentage: number;
-  trade: string;
-  stage: 'Formalized & Banked' | 'In Incubation' | 'Skilling Phase';
-  bankAccount: string;
-  treesPlanted: number;
-  leaderName: string;
-  leaderPhone: string;
+  amountLabel: string;
+  description: string;
 }
 
-export interface PaymentTransaction {
+/**
+ * Whitelisted Public Profile returned by /api/directory.
+ * Never includes private member lists, phones, emails, or National IDs.
+ */
+export interface PublicGroupProfile {
+  id: string;
+  slug: string;
+  name: string;
+  programmeType: ProgrammeType;
+  isProgrammeOnly: boolean;
+  location: string;
+  summary: string;
+  representativeName: string;
+  representativeTitle: string;
+  memberCount: number;
+  projectName: string;
+  projectDescription: string;
+  supportFocus: string;
+  websiteUrl: string;
+  activities: string[];
+  sponsorshipPackages: SponsorshipPackage[];
+  updatedAt: string;
+}
+
+export interface DirectoryMeta {
+  totalPublicProfiles: number;
+  memberGroupsCount: number;
+  programmeProfilesCount: number;
+  totalSuppliedMemberRecords: number;
+  locations: string[];
+  programmeTypes: string[];
+  representatives: string[];
+}
+
+export interface PrivateMemberRecord {
+  id: string;
+  groupId: string;
+  groupName?: string;
+  fullName: string;
+  title: string;
+  phone: string;
+  email: string;
+  nationalId: string;
+  location: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GroupAdminAssignment {
+  id: string;
+  email: string;
+  groupId: string;
+  groupName?: string;
+  assignedBy: string;
+  assignedAt: string;
+}
+
+export interface KnownUserAccount {
+  email: string;
+  uid: string;
+  displayName: string;
+  firstSignedInAt: string;
+  lastSeenAt: string;
+}
+
+export type SupportType = 'Sponsor' | 'Invest' | 'Partner';
+
+export interface SupportEnquiryRecord {
   id: string;
   reference: string;
-  amount: number;
-  currency: string;
-  provider: 'MTN' | 'AIRTEL';
-  phoneNumber: string;
-  donorName: string;
-  purpose: string;
-  status: 'PENDING' | 'SUCCESSFUL' | 'FAILED';
+  groupId: string;
+  groupName: string;
+  supportType: SupportType;
+  contactName: string;
+  email: string;
+  phone: string;
+  organisation: string;
+  packageName: string;
+  message: string;
+  consent: boolean;
+  status: 'NEW' | 'IN_REVIEW' | 'RESPONDED';
   createdAt: string;
-  treesSponsored?: number;
-  relworxBatchId: string;
 }
 
-export interface Founder {
-  name: string;
-  role: string;
-  title: string;
-  bioEn: string;
-  bioLg: string;
-  focus: string[];
-  image: string;
-  quote: string;
-}
-
-export interface InstitutionalPartner {
-  name: string;
-  role: string;
-  descriptionEn: string;
-  descriptionLg: string;
-  badge: string;
-  deliverables: string[];
+export interface SupportEnquiryPreset {
+  groupId: string;
+  groupName: string;
+  supportType: SupportType;
+  packageName?: string;
 }

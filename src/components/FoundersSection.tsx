@@ -1,91 +1,75 @@
 import React from 'react';
-import { useLanguage } from '../context/LanguageContext';
-import { FOUNDERS } from '../data/content';
+import { Award, CheckCircle2, Quote } from 'lucide-react';
+import { LEADERSHIP_PROFILES } from '../data/content';
 
 export const FoundersSection: React.FC = () => {
-  const { t, language } = useLanguage();
-  const foundersT = t.founders;
-
   return (
-    <section id="founders" className="py-16 sm:py-24 bg-white border-b border-slate-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        
-        {/* Section Header */}
-        <div className="max-w-3xl mb-12 sm:mb-16">
-          <div className="text-xs font-semibold uppercase tracking-wider text-emerald-800 mb-2">
-            {foundersT.kicker}
+    <section id="leadership" className="py-16 sm:py-24 bg-white border-b border-slate-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        <div className="max-w-3xl">
+          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#0F5132] mb-3">
+            <Award className="w-4 h-4" />
+            <span>Executive Leadership & Network Stewardship</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
-            {foundersT.title}
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-['Plus_Jakarta_Sans',sans-serif]">
+            The Leadership Behind ENGANDA
           </h2>
-          <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
-            {foundersT.subtitle}
+          <p className="mt-3 text-base sm:text-lg text-slate-600 leading-relaxed">
+            Combining frontline community trust across Greater Entebbe with structured enterprise
+            coordination and institutional accountability.
           </p>
         </div>
 
-        {/* Founders Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12">
-          {FOUNDERS.map((founder, idx) => (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {LEADERSHIP_PROFILES.map((leader) => (
             <div
-              key={idx}
-              className="bg-slate-50 rounded-2xl p-7 sm:p-9 border border-slate-200/90 shadow-xs flex flex-col justify-between"
+              key={leader.name}
+              className="bg-[#FAF9F6] rounded-3xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between p-6 sm:p-8"
             >
-              <div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 mb-6">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-emerald-800/20 shadow-xs shrink-0 bg-slate-200">
-                    <img
-                      src={founder.image}
-                      alt={`Portrait of ${founder.name}`}
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+                  <img
+                    src={leader.image}
+                    alt={leader.name}
+                    className="w-24 h-24 rounded-2xl object-cover border-2 border-[#0F5132]/30 shrink-0"
+                  />
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
-                      {founder.role}
+                    <span className="px-2.5 py-1 rounded-md bg-emerald-100 text-[#0F5132] text-xs font-extrabold uppercase tracking-wider">
+                      {leader.role}
                     </span>
-                    <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mt-0.5">
-                      {founder.name}
+                    <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-2 font-['Plus_Jakarta_Sans',sans-serif]">
+                      {leader.name}
                     </h3>
-                    <p className="text-xs sm:text-sm font-medium text-amber-800 mt-1">
-                      {founder.title}
-                    </p>
+                    <p className="text-xs font-semibold text-amber-700 mt-0.5">{leader.title}</p>
                   </div>
                 </div>
 
-                {/* Quote Box */}
-                <div className="bg-white rounded-xl p-4 border border-slate-200/70 mb-6 text-xs sm:text-sm italic text-slate-700 leading-relaxed">
-                  {founder.quote}
-                </div>
+                <p className="text-sm text-slate-700 leading-[1.7]">{leader.bio}</p>
 
-                {/* Bio Prose */}
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
-                  {language === 'lg' ? founder.bioLg : founder.bioEn}
-                </p>
-
-                {/* Focus Areas */}
-                <div className="space-y-2 mb-6">
-                  <div className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                    {language === 'lg' ? 'Enteekateeka z’Omukulembeze' : 'Strategic Mandate'}
+                <div className="bg-white rounded-2xl p-4 border border-slate-200/80 space-y-2">
+                  <div className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
+                    Core Areas of Responsibility
                   </div>
-                  {founder.focus.map((item, itemIdx) => (
-                    <div key={itemIdx} className="flex items-center gap-2 text-xs text-slate-700">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0" />
-                      <span>{item}</span>
-                    </div>
-                  ))}
+                  <ul className="space-y-1.5">
+                    {leader.focus.map((item) => (
+                      <li key={item} className="flex items-start gap-2 text-xs text-slate-800">
+                        <CheckCircle2 className="w-4 h-4 text-[#0F5132] shrink-0 mt-0.5" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
 
-              {/* Direct Connect */}
-              <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
-                <span className="font-medium text-slate-700">Enganda Executive Office</span>
-                <span className="text-emerald-800 font-semibold">Entebbe, Uganda</span>
+              <div className="mt-6 pt-5 border-t border-slate-200 flex items-start gap-3">
+                <Quote className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-xs sm:text-sm italic text-slate-700 leading-relaxed">
+                  {leader.quote}
+                </p>
               </div>
             </div>
           ))}
         </div>
-
       </div>
     </section>
   );

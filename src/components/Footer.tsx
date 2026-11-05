@@ -1,216 +1,150 @@
 import React from 'react';
-import { useLanguage } from '../context/LanguageContext';
-import { GANDA_LOGO, FAVICON_LOGO } from '../data/content';
-import { MapPin, Mail, Phone, FileText, UserCheck, Shield } from 'lucide-react';
+import { ExternalLink, ShieldCheck, Lock, ArrowUpRight, MapPin } from 'lucide-react';
+import { EngandaLogo } from './EngandaLogo';
+import { SupportEnquiryPreset } from '../types';
 
 interface FooterProps {
-  onOpenPartnerModal: () => void;
-  onOpenRegisterModal: () => void;
-  onOpenUssdModal: () => void;
-  onOpenAdvisorModal: () => void;
-  onOpenAdminPortal: () => void;
-  onOpenUserPortal: () => void;
+  onOpenSupportModal: (preset?: SupportEnquiryPreset) => void;
+  onOpenAdminModal: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
-  onOpenPartnerModal,
-  onOpenRegisterModal,
-  onOpenUssdModal,
-  onOpenAdvisorModal,
-  onOpenAdminPortal,
-  onOpenUserPortal,
+  onOpenSupportModal,
+  onOpenAdminModal,
 }) => {
-  const { t, language } = useLanguage();
-  const navT = t.nav;
-
   return (
-    <footer className="bg-slate-900 text-slate-300 pt-16 pb-12 border-t border-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        
-        {/* Main Footer Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
-          
-          {/* Col 1 & 2: Brand & Official Trust Protocol Emblem */}
-          <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center p-1.5 shrink-0">
-                <img
-                  src={FAVICON_LOGO}
-                  alt="Enganda Trust Protocol"
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <img
-                  src={GANDA_LOGO}
-                  alt="ENGANDA"
-                  className="h-8 w-auto object-contain brightness-110"
-                />
-                <span className="text-[10px] uppercase font-bold text-emerald-400 font-mono tracking-wider border-l border-slate-800 pl-2">
-                  {t.protocolSubtitle || 'Indigenous Trust Protocol · Entebbe'}
-                </span>
-              </div>
-            </div>
-
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-sm">
-              {language === 'lg'
-                ? 'Kibiina eky’obwannakyewa ekitegeka abavubuka obukadde bubiri (2,000,000) wansi w’emyaka 30 okufuuka ebibiina ebiwandiise mu mateeka, ebyewola, era ebitegeke mu by’enfuna.'
-                : 'Ugandan social enterprise dedicated to transitioning 2,000,000 informal sector youth under 30 into formalized, bankable, and structured economic units.'}
+    <footer className="bg-[#071D14] text-emerald-100 border-t border-emerald-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-emerald-900/80">
+          {/* Brand Column (4 cols) */}
+          <div className="lg:col-span-4 space-y-4">
+            <EngandaLogo variant="light" size="md" showSubtitle={true} />
+            <p className="text-xs sm:text-sm text-emerald-200/80 leading-relaxed max-w-sm">
+              ENGANDA is an umbrella organisation in Entebbe, Uganda connecting informal youth and
+              community groups to skills, formal economic structure, finance, visibility, and
+              responsible partnerships.
             </p>
-
-            <div className="pt-2 text-xs text-slate-400 space-y-1.5">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>Entebbe Municipality, Division A, Lake Victoria Basin, Uganda</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>Executive Office: +256 772 109 231 / +256 702 449 811</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>Official Inquiries: info@enganda.ug · partnerships@enganda.ug</span>
-              </div>
+            <div className="flex items-center gap-2 text-xs text-emerald-300/90">
+              <MapPin className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>Greater Entebbe, Uganda</span>
             </div>
           </div>
 
-          {/* Col 3: Core Navigation */}
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
-              {language === 'lg' ? 'Eby’Okulondako' : 'Platform Navigation'}
+          {/* Navigation Column (3 cols) */}
+          <div className="lg:col-span-3 space-y-3">
+            <h4 className="text-xs font-extrabold uppercase tracking-widest text-amber-400">
+              ENGANDA Platform
             </h4>
-            <ul className="space-y-2.5 text-xs text-slate-400">
+            <ul className="space-y-2 text-xs sm:text-sm text-emerald-100/85">
               <li>
-                <a href="#about" className="hover:text-emerald-400 transition-colors">
-                  {navT.about}
+                <a href="#home" className="hover:text-white transition-colors">
+                  Overview
                 </a>
               </li>
               <li>
-                <a href="#pillars" className="hover:text-emerald-400 transition-colors">
-                  {navT.pillars}
+                <a href="#about-network" className="hover:text-white transition-colors">
+                  About & Operating Model
                 </a>
               </li>
               <li>
-                <a href="#pilot" className="hover:text-emerald-400 transition-colors">
-                  {navT.pilot}
+                <a href="#programmes" className="hover:text-white transition-colors">
+                  Flagship Programmes (SIZ, EGYA, LeoLeo)
                 </a>
               </li>
               <li>
-                <a href="#impact" className="hover:text-emerald-400 transition-colors text-emerald-300 font-medium">
-                  {navT.impact}
+                <a href="#directory" className="hover:text-white transition-colors">
+                  Complete Group Directory (15 Profiles)
                 </a>
               </li>
               <li>
-                <a href="#invest" className="hover:text-amber-400 transition-colors text-amber-300 font-medium">
-                  {navT.invest}
-                </a>
-              </li>
-              <li>
-                <a href="#partners" className="hover:text-emerald-400 transition-colors">
-                  {navT.partners}
-                </a>
-              </li>
-              <li>
-                <a href="#founders" className="hover:text-emerald-400 transition-colors">
-                  {navT.founders}
+                <a href="#leadership" className="hover:text-white transition-colors">
+                  Executive Leadership
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Col 4: Operations & Tooling */}
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
-              {language === 'lg' ? 'Ebyuma n’Enkola' : 'Field & Digital Tools'}
+          {/* Connected Programmes & External Links (3 cols) */}
+          <div className="lg:col-span-3 space-y-3">
+            <h4 className="text-xs font-extrabold uppercase tracking-widest text-amber-400">
+              Network Programme Portals
             </h4>
-            <ul className="space-y-2.5 text-xs text-slate-400">
+            <ul className="space-y-2.5 text-xs sm:text-sm text-emerald-100/85">
               <li>
-                <button
-                  onClick={onOpenRegisterModal}
-                  className="hover:text-emerald-400 transition-colors text-left"
+                <a
+                  href="https://siz-football-academy-erp.ai.studio"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 hover:text-amber-300 transition-colors"
                 >
-                  {navT.registerGroup}
-                </button>
+                  <span>SIZ Football Academy Portal</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+                </a>
               </li>
               <li>
-                <button
-                  onClick={onOpenUssdModal}
-                  className="hover:text-amber-400 transition-colors text-left font-mono"
+                <a
+                  href="https://leo-leo.ai.studio"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 hover:text-amber-300 transition-colors"
                 >
-                  Offline USSD (*217#)
-                </button>
+                  <span>LeoLeo Programme Platform</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+                </a>
               </li>
               <li>
-                <button
-                  onClick={onOpenAdvisorModal}
-                  className="hover:text-emerald-400 transition-colors text-left"
-                >
-                  Enganda Omubeezi (AI Advisor)
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={onOpenUserPortal}
-                  className="hover:text-emerald-400 transition-colors text-left flex items-center gap-1.5"
-                >
-                  <UserCheck className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>{navT.userPortal}</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={onOpenAdminPortal}
-                  className="hover:text-amber-400 transition-colors text-left flex items-center gap-1.5"
-                >
-                  <Shield className="w-3.5 h-3.5 text-amber-500" />
-                  <span>{navT.adminPortal}</span>
-                </button>
+                <a href="#programmes" className="hover:text-white transition-colors">
+                  EGYA Association (Entebbe)
+                </a>
               </li>
             </ul>
           </div>
 
-          {/* Col 5: Governance & Compliance */}
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
-              {language === 'lg' ? 'Enkola n’Emitindo' : 'Governance & Standards'}
+          {/* Administration & Partnership Actions (2 cols) */}
+          <div className="lg:col-span-2 space-y-3">
+            <h4 className="text-xs font-extrabold uppercase tracking-widest text-amber-400">
+              Actions & Governance
             </h4>
-            <div className="space-y-3 text-xs text-slate-400">
-              <div className="p-3 rounded-lg bg-slate-800/80 border border-slate-700/60">
-                <span className="block font-semibold text-white text-[11px] mb-1">
-                  EU & Municipal Oversight
-                </span>
-                <p className="text-[10px] text-slate-300 leading-normal">
-                  {language === 'lg'
-                    ? 'Ebibiina byonna bya URSB, bikolera ku bbanka ya EcoBank, era bisimba emiti n’olukiiko lw’ekibuga ky’e Ntebbe.'
-                    : 'All youth cohorts adhere to audited URSB governance, EcoBank multi-signatory protocols, and Entebbe Municipal Council environmental bylaws.'}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                <FileText className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                <a href="#pilot" className="hover:text-white underline">
-                  {language === 'lg' ? 'Ebibala by’e Ntebbe (2024–2025)' : 'Audited Pilot Results (2024–2025)'}
-                </a>
-              </div>
+            <div className="flex flex-col gap-2.5">
+              <button
+                type="button"
+                onClick={() =>
+                  onOpenSupportModal({
+                    groupId: 'grp-siz-academy',
+                    groupName: 'SIZ Football Academy',
+                    supportType: 'Sponsor',
+                  })
+                }
+                className="inline-flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold transition-colors cursor-pointer"
+              >
+                <span>Submit Enquiry</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={onOpenAdminModal}
+                className="inline-flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-emerald-900/90 hover:bg-emerald-800 text-emerald-100 border border-emerald-700 text-xs font-bold transition-colors cursor-pointer"
+              >
+                <span>Member Admin</span>
+                <Lock className="w-3.5 h-3.5 text-amber-400" />
+              </button>
             </div>
           </div>
-
         </div>
 
-        {/* Bottom Bar: Quiet Copyright */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        {/* Bottom Copyright & Privacy Assurance */}
+        <div className="pt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-emerald-300/75">
           <div>
-            © {new Date().getFullYear()} Enganda Social Enterprise Ltd. Incorporated in the Republic of Uganda.
+            &copy; {new Date().getFullYear()} ENGANDA. All rights reserved. Connecting informal
+            youth and community groups to formal opportunity.
           </div>
-          <div className="flex items-center gap-6">
-            <span>Entebbe Pilot Benchmark</span>
-            <span>·</span>
-            <span>Relworx MoMo Gateway</span>
-            <span>·</span>
-            <span>EcoBank Uganda</span>
+          <div className="inline-flex items-center gap-1.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>
+              Server-side member privacy enforced • No online payments processed on this site
+            </span>
           </div>
         </div>
-
       </div>
     </footer>
   );

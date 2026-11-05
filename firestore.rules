@@ -377,5 +377,11 @@ service cloud.firestore {
 
       allow delete: if false;
     }
+
+    // Collection: /test/{testId} (Read-only Connectivity Probe)
+    match /test/{testId} {
+      allow get: if isValidId(testId);
+      allow list, create, update, delete: if false;
+    }
   }
 }
