@@ -474,6 +474,67 @@
         "relworxGatewayActive",
         "updatedAt"
       ]
+    },
+    "NewsletterSubscription": {
+      "title": "NewsletterSubscription",
+      "description": "Quarterly ENGANDA Impact Newsletter subscription record with explicit user consent.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "reference": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 32
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "subscriberName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "organisation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "consent": {
+          "type": "boolean"
+        },
+        "frequency": {
+          "type": "string",
+          "enum": ["QUARTERLY"],
+          "minLength": 9,
+          "maxLength": 9
+        },
+        "targetGoalYouth": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "reference",
+        "email",
+        "subscriberName",
+        "organisation",
+        "consent",
+        "frequency",
+        "targetGoalYouth",
+        "createdAt"
+      ]
     }
   },
   "firestore": {
@@ -504,6 +565,10 @@
     "/settings/{settingId}": {
       "schema": { "$ref": "#/entities/SiteSettings" },
       "description": "Global platform configuration and bilingual announcement banners."
+    },
+    "/newsletter_subscriptions/{subscriptionId}": {
+      "schema": { "$ref": "#/entities/NewsletterSubscription" },
+      "description": "Quarterly ENGANDA Impact Newsletter subscriptions with explicit user consent."
     }
   }
 }

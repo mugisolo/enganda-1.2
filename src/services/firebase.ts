@@ -81,16 +81,30 @@ export function handleFirestoreError(
   throw new Error(JSON.stringify(errInfo));
 }
 
-async function testConnection() {
+let firestoreConnected = false;
+
+export async function checkFirestoreConnectionStatus(): Promise<boolean> {
   try {
-    await getDocFromServer(doc(db, 'settings', 'global'));
+    await getDocFromServer(doc(db, 'test', 'connection'));
+    firestoreConnected = true;
+    return true;
   } catch (error) {
     if (error instanceof Error && error.message.includes('the client is offline')) {
       console.error('Please check your Firebase configuration.');
+      firestoreConnected = false;
+      return false;
     }
+    // Even if doc doesn't exist, reaching server without offline error means connected
+    firestoreConnected = true;
+    return true;
   }
 }
-testConnection();
+
+export function isFirestoreConnected(): boolean {
+  return firestoreConnected;
+}
+
+checkFirestoreConnectionStatus();
 
 export async function signInWithGoogle() {
   const result = await signInWithPopup(auth, googleProvider);
@@ -142,17 +156,50 @@ export async function syncEnquiryToFirestore(enquiry: {
     await setDoc(doc(db, 'inquiries', cleanId), {
       id: cleanId,
       userId: auth.currentUser.uid,
-      organizationName: String(enquiry.organisation || enquiry.groupName || 'ENGANDA Supporter').slice(0, 160),
+      organizationName: String(
+        enquiry.organisation || enquiry.groupName || 'ENGANDA Supporter'
+      ).slice(0, 160),
       contactPerson: String(enquiry.contactName || 'Supporter').slice(0, 120),
       email: String(enquiry.email || 'contact@enganda.org').slice(0, 254),
       phone: String(enquiry.phone || '').slice(0, 30),
       partnershipType: `${enquiry.supportType} - ${enquiry.packageName}`.slice(0, 120),
-      message: `[Ref: ${enquiry.reference} | Group: ${enquiry.groupName}] ${enquiry.message}`.slice(0, 2000),
+      message: `[Ref: ${enquiry.reference} | Group: ${enquiry.groupName}] ${enquiry.message}`.slice(
+        0,
+        2000
+      ),
       status: 'NEW',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, path);
+  }
+}
+
+export async function saveNewsletterSubscriptionToFirestore(subscription: {
+  id: string;
+  reference: string;
+  email: string;
+  name?: string;
+  organisation?: string;
+  consent: boolean;
+}) {
+  const cleanId = subscription.id.replace(/[^a-zA-Z0-9_-]/g, '-').slice(0, 64);
+  const path = `newsletter_subscriptions/${cleanId}`;
+  try {
+    await setDoc(doc(db, 'newsletter_subscriptions', cleanId), {
+      id: cleanId,
+      reference: String(subscription.reference || 'NEWS-00001').slice(0, 32),
+      email: String(subscription.email || '').trim().toLowerCase().slice(0, 254),
+      subscriberName: String(subscription.name || 'ENGANDA Partner').trim().slice(0, 120),
+      organisation: String(subscription.organisation || 'Independent').trim().slice(0, 160),
+      consent: Boolean(subscription.consent),
+      frequency: 'QUARTERLY',
+      targetGoalYouth: 2000000,
+      createdAt: serverTimestamp(),
+    });
+  } catch (error) {
+    // Only throw structured error if signed in or if rules reject; log gracefully so backend storage remains primary
+    console.warn('Firestore newsletter sync warning:', error);
   }
 }

@@ -189,6 +189,26 @@ service cloud.firestore {
         data.updatedAt is timestamp;
     }
 
+    function isValidNewsletterSubscription(data) {
+      return data.keys().hasAll([
+          'id', 'reference', 'email', 'subscriberName', 'organisation',
+          'consent', 'frequency', 'targetGoalYouth', 'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'reference', 'email', 'subscriberName', 'organisation',
+          'consent', 'frequency', 'targetGoalYouth', 'createdAt'
+        ]) &&
+        data.id is string && data.id.size() >= 1 && data.id.size() <= 64 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.reference is string && data.reference.size() >= 3 && data.reference.size() <= 32 &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 254 &&
+        data.subscriberName is string && data.subscriberName.size() >= 1 && data.subscriberName.size() <= 120 &&
+        data.organisation is string && data.organisation.size() >= 1 && data.organisation.size() <= 160 &&
+        data.consent is bool && data.consent == true &&
+        data.frequency is string && data.frequency == 'QUARTERLY' &&
+        data.targetGoalYouth is number && data.targetGoalYouth == 2000000 &&
+        data.createdAt is timestamp;
+    }
+
     // =========================================================================
     // 4. COLLECTION MATCH BLOCKS
     // =========================================================================
@@ -376,6 +396,24 @@ service cloud.firestore {
         ]);
 
       allow delete: if false;
+    }
+
+    // Collection: /newsletter_subscriptions/{subscriptionId} (Admin Read, Validated Consent Create)
+    match /newsletter_subscriptions/{subscriptionId} {
+      allow get, list: if isAdmin();
+
+      allow create: if isValidId(subscriptionId) &&
+        isValidNewsletterSubscription(incoming()) &&
+        incoming().id == subscriptionId &&
+        incoming().createdAt == request.time;
+
+      allow update: if isAdmin() &&
+        isValidId(subscriptionId) &&
+        isValidNewsletterSubscription(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().createdAt == existing().createdAt;
+
+      allow delete: if isAdmin() && isValidId(subscriptionId);
     }
 
     // Collection: /test/{testId} (Read-only Connectivity Probe)

@@ -32,6 +32,11 @@ export interface PublicGroupProfile {
   websiteUrl: string;
   activities: string[];
   sponsorshipPackages: SponsorshipPackage[];
+  mapCoords?: {
+    x: number;
+    y: number;
+    zone: string;
+  };
   updatedAt: string;
 }
 
@@ -100,4 +105,28 @@ export interface SupportEnquiryPreset {
   groupName: string;
   supportType: SupportType;
   packageName?: string;
+}
+
+export interface NewsletterSubscriptionRecord {
+  id: string;
+  reference: string;
+  email: string;
+  name: string;
+  organisation: string;
+  consent: boolean;
+  frequency: 'QUARTERLY';
+  createdAt: string;
+}
+
+export interface TransitionMilestone {
+  id: string;
+  period: string;
+  stage: 'Organise' | 'Formalise' | 'Grow';
+  groupName: string;
+  location: string;
+  membersTransitioned: number;
+  cumulativeFormalised: number;
+  milestoneTitle: string;
+  verificationNote: string;
+  representative: string;
 }

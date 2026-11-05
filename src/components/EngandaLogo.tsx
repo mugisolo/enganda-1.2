@@ -14,15 +14,15 @@ interface EngandaLogoProps {
 export const EngandaLogo: React.FC<EngandaLogoProps> = ({
   variant = 'dark',
   size = 'md',
-  showSubtitle = true,
+  showSubtitle = false,
 }) => {
   const iconDimensions =
-    size === 'sm' ? 'w-8 h-8' : size === 'lg' ? 'w-12 h-12' : 'w-10 h-10';
+    size === 'sm' ? 'w-8 h-8' : size === 'lg' ? 'w-11 h-11' : 'w-9 h-9';
   const wordmarkSize =
-    size === 'sm' ? 'text-lg' : size === 'lg' ? 'text-2xl' : 'text-xl';
+    size === 'sm' ? 'text-base' : size === 'lg' ? 'text-xl' : 'text-lg';
 
   return (
-    <div className="inline-flex items-center gap-3 select-none">
+    <div className="inline-flex items-center gap-2.5 select-none">
       <div
         className={`${iconDimensions} rounded-xl bg-[#0F5132] flex items-center justify-center shadow-sm border border-emerald-700/40 shrink-0`}
       >
@@ -84,11 +84,11 @@ export const EngandaLogo: React.FC<EngandaLogoProps> = ({
         </span>
         {showSubtitle && (
           <span
-            className={`text-[10px] font-semibold uppercase tracking-[0.16em] mt-1 ${
+            className={`text-[9px] font-semibold uppercase tracking-[0.14em] mt-0.5 ${
               variant === 'light' ? 'text-emerald-300/90' : 'text-[#0F5132]'
             }`}
           >
-            Community Network Umbrella
+            Entebbe, Uganda
           </span>
         )}
       </div>

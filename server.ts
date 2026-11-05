@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { type Request, type Response } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
@@ -7,19 +7,18 @@ import {
   loadOrInitializeStore,
   saveStore,
   normalizeDuplicateKey,
-  NetworkGroupRecord,
-  PrivateMemberRecord,
-  SupportEnquiryRecord,
-} from './server-data/seedStore';
+  type NetworkGroupRecord,
+  type PrivateMemberRecord,
+  type SupportEnquiryRecord,
+  type NewsletterSubscriptionRecord,
+} from './server-data/seedStore.ts';
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load persistent store (15 public profiles + 690 reconciled member records)
 const store = loadOrInitializeStore();
-
 const GLOBAL_ADMIN_EMAILS = new Set(['mugisolo@gmail.com']);
 
 interface CallerContext {
@@ -71,6 +70,7 @@ function toPublicGroupProfile(group: NetworkGroupRecord, memberCount: number) {
     programmeType: group.programmeType,
     isProgrammeOnly: group.isProgrammeOnly,
     location: group.location,
+    mapCoords: group.mapCoords,
     summary: group.summary,
     representativeName: group.representativeName,
     representativeTitle: group.representativeTitle,
@@ -255,6 +255,59 @@ async function startServer() {
   });
 
   // ===========================================================================
+  // 2B. QUARTERLY IMPACT NEWSLETTER SUBSCRIPTION (With Consent & Storage)
+  // ===========================================================================
+  app.post('/api/newsletter/subscribe', (req: Request, res: Response) => {
+    const { email, name, organisation, consent } = req.body;
+
+    if (!email || !String(email).includes('@')) {
+      return res.status(400).json({ error: 'Please provide a valid email address.' });
+    }
+
+    if (consent !== true) {
+      return res.status(400).json({
+        error:
+          'Please check the consent box to subscribe to the quarterly ENGANDA Impact Newsletter.',
+      });
+    }
+
+    const cleanEmail = String(email).trim().toLowerCase().slice(0, 254);
+    const existing = store.newsletterSubscriptions.find((s) => s.email === cleanEmail);
+    if (existing) {
+      return res.status(200).json({
+        success: true,
+        reference: existing.reference,
+        alreadySubscribed: true,
+        message: 'Your email is already subscribed to the quarterly ENGANDA Impact Newsletter.',
+      });
+    }
+
+    store.newsletterSequence = (store.newsletterSequence || 0) + 1;
+    const reference = `NEWS-${String(store.newsletterSequence).padStart(5, '0')}`;
+
+    const record: NewsletterSubscriptionRecord = {
+      id: `sub-${Date.now()}-${store.newsletterSequence}`,
+      reference,
+      email: cleanEmail,
+      name: String(name || '').trim().slice(0, 120),
+      organisation: String(organisation || '').trim().slice(0, 160),
+      consent: true,
+      subscribedAt: new Date().toISOString(),
+    };
+
+    store.newsletterSubscriptions.unshift(record);
+    saveStore(store);
+
+    return res.status(201).json({
+      success: true,
+      reference,
+      subscription: record,
+      message:
+        'Subscribed to the quarterly ENGANDA Impact Newsletter. Consent recorded in the ENGANDA database.',
+    });
+  });
+
+  // ===========================================================================
   // 3. AUTH SESSION REGISTRATION & ACCESS RESOLUTION
   // ===========================================================================
   app.post('/api/auth/session', (req: Request, res: Response) => {
@@ -390,7 +443,6 @@ async function startServer() {
   app.get('/api/members', handleGetMembers);
   app.get('/api/admin/members', handleGetMembers);
 
-  // Manual Member Creation
   app.post('/api/admin/members', (req: Request, res: Response) => {
     const caller = resolveCaller(req);
     if (!caller) {
@@ -453,7 +505,6 @@ async function startServer() {
     });
   });
 
-  // Manual Member Update
   app.put('/api/admin/members/:memberId', (req: Request, res: Response) => {
     const caller = resolveCaller(req);
     if (!caller) {
@@ -520,7 +571,6 @@ async function startServer() {
     });
   });
 
-  // Member Deletion
   app.delete('/api/admin/members/:memberId', (req: Request, res: Response) => {
     const caller = resolveCaller(req);
     if (!caller) {
@@ -548,7 +598,6 @@ async function startServer() {
     });
   });
 
-  // Bulk CSV Import (Max 500 valid rows, Exact-duplicate detection by normalized fullName + phone)
   app.post('/api/admin/members/bulk-import', (req: Request, res: Response) => {
     const caller = resolveCaller(req);
     if (!caller) {
@@ -769,7 +818,6 @@ async function startServer() {
       return res.status(404).json({ error: 'Selected group does not exist.' });
     }
 
-    // Check if the user has signed in at least once
     const hasSignedIn = store.knownUsers.some((u) => u.email.toLowerCase() === email);
     if (!hasSignedIn) {
       return res.status(400).json({
@@ -840,6 +888,7 @@ async function startServer() {
 
     return res.json({
       enquiries: store.enquiries,
+      newsletterSubscriptions: store.newsletterSubscriptions,
     });
   });
 
@@ -883,7 +932,8 @@ async function startServer() {
   });
 
   // Serve Frontend
-  if (process.env.NODE_ENV === 'production') {
+  const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.K_SERVICE);
+  if (isProduction) {
     app.use(express.static(path.resolve(__dirname, 'dist')));
     app.get('*', (_req, res) => {
       res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));

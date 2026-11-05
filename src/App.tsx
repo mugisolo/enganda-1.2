@@ -3,12 +3,14 @@ import { AuthProvider } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { AboutNetworkSection } from './components/AboutNetworkSection';
+import { ImpactMetricsSection } from './components/ImpactMetricsSection';
 import { FlagshipProgrammesSection } from './components/FlagshipProgrammesSection';
 import { GroupDirectorySection } from './components/GroupDirectorySection';
 import { FoundersSection } from './components/FoundersSection';
 import { Footer } from './components/Footer';
 import { SupportEnquiryModal } from './components/SupportEnquiryModal';
 import { AdminPortalModal } from './components/AdminPortalModal';
+import { TransitionHistoryModal } from './components/TransitionHistoryModal';
 import { PublicGroupProfile, DirectoryMeta, SupportEnquiryPreset } from './types';
 
 function EngandaMainApp() {
@@ -19,6 +21,7 @@ function EngandaMainApp() {
   const [supportModalOpen, setSupportModalOpen] = useState(false);
   const [supportPreset, setSupportPreset] = useState<SupportEnquiryPreset | null>(null);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
+  const [transitionModalOpen, setTransitionModalOpen] = useState(false);
 
   const loadDirectory = useCallback(async () => {
     try {
@@ -54,6 +57,7 @@ function EngandaMainApp() {
       <Navbar
         onOpenSupportModal={handleOpenSupportModal}
         onOpenAdminModal={() => setAdminModalOpen(true)}
+        onOpenTransitionModal={() => setTransitionModalOpen(true)}
       />
 
       {/* Main Content */}
@@ -65,18 +69,27 @@ function EngandaMainApp() {
           totalMemberRecords={meta?.totalSuppliedMemberRecords ?? 690}
           onOpenSupportModal={handleOpenSupportModal}
           onOpenAdminModal={() => setAdminModalOpen(true)}
+          onOpenTransitionModal={() => setTransitionModalOpen(true)}
         />
 
         {/* 2. Restructured About Section with Infographics (Umbrella Diagram, Organise->Formalise->Grow, 3 Capacity Areas) */}
         <AboutNetworkSection />
 
-        {/* 3. Flagship Programmes & Hierarchy (SIZ Football Academy, EGYA Association, LeoLeo) */}
+        {/* 3. Impact Metrics (Recharts 2,000,000 Target & 690 Cohort) + Interactive Entebbe Map */}
+        <ImpactMetricsSection
+          profiles={profiles}
+          totalMemberRecords={meta?.totalSuppliedMemberRecords ?? 690}
+          onOpenTransitionModal={() => setTransitionModalOpen(true)}
+          onOpenSupportModal={handleOpenSupportModal}
+        />
+
+        {/* 4. Flagship Programmes & Hierarchy (SIZ Football Academy, EGYA Association, LeoLeo) */}
         <FlagshipProgrammesSection
           profiles={profiles}
           onOpenSupportModal={handleOpenSupportModal}
         />
 
-        {/* 4. Complete 15-Profile Public Group Directory (13 Member Groups = 690 Records + SIZ & LeoLeo) */}
+        {/* 5. Complete 15-Profile Public Group Directory (13 Member Groups = 690 Records + SIZ & LeoLeo) */}
         <GroupDirectorySection
           profiles={profiles}
           meta={meta}
@@ -84,14 +97,15 @@ function EngandaMainApp() {
           onOpenAdminModal={() => setAdminModalOpen(true)}
         />
 
-        {/* 5. Executive Leadership */}
+        {/* 6. Executive Leadership */}
         <FoundersSection />
       </main>
 
-      {/* Footer */}
+      {/* Footer with Quarterly ENGANDA Impact Newsletter Subscription */}
       <Footer
         onOpenSupportModal={handleOpenSupportModal}
         onOpenAdminModal={() => setAdminModalOpen(true)}
+        onOpenTransitionModal={() => setTransitionModalOpen(true)}
       />
 
       {/* Support, Sponsorship, Investment & Partnership Enquiry Modal */}
@@ -108,6 +122,12 @@ function EngandaMainApp() {
         onClose={() => setAdminModalOpen(false)}
         profiles={profiles}
         onDataMutated={loadDirectory}
+      />
+
+      {/* Historical Youth Group Transition Milestones Log Modal */}
+      <TransitionHistoryModal
+        isOpen={transitionModalOpen}
+        onClose={() => setTransitionModalOpen(false)}
       />
     </div>
   );
