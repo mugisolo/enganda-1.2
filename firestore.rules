@@ -37,6 +37,12 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // Cost-optimized admin check (no DB lookup) for list queries
+    function isBootstrappedAdmin() {
+      return isVerified() && request.auth.token.email == 'mugisolo@gmail.com';
+    }
+
+    // Full admin check for single-document operations
     function isAdmin() {
       return isVerified() && (
         request.auth.token.email == 'mugisolo@gmail.com' ||
@@ -209,20 +215,74 @@ service cloud.firestore {
         data.createdAt is timestamp;
     }
 
+    function isValidSafariEvent(data) {
+      return data.keys().hasAll([
+          'id', 'title', 'category', 'subtitle', 'dateLabel', 'location',
+          'duration', 'priceLabel', 'spotsAvailable', 'highlightTag',
+          'description', 'imageUrl', 'showOnCarousel', 'showInUpcoming',
+          'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'title', 'category', 'subtitle', 'dateLabel', 'location',
+          'duration', 'priceLabel', 'spotsAvailable', 'highlightTag',
+          'description', 'imageUrl', 'showOnCarousel', 'showInUpcoming',
+          'createdAt', 'updatedAt'
+        ]) &&
+        data.id is string && data.id.size() >= 1 && data.id.size() <= 64 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.title is string && data.title.size() >= 2 && data.title.size() <= 160 &&
+        data.category is string && data.category in ['Safari & Eco-Tour', 'Upcoming Program', 'Conservation Expedition', 'Youth Summit'] &&
+        data.subtitle is string && data.subtitle.size() >= 2 && data.subtitle.size() <= 200 &&
+        data.dateLabel is string && data.dateLabel.size() >= 2 && data.dateLabel.size() <= 80 &&
+        data.location is string && data.location.size() >= 2 && data.location.size() <= 140 &&
+        data.duration is string && data.duration.size() >= 2 && data.duration.size() <= 60 &&
+        data.priceLabel is string && data.priceLabel.size() >= 2 && data.priceLabel.size() <= 80 &&
+        data.spotsAvailable is number && data.spotsAvailable >= 0 && data.spotsAvailable <= 100000 &&
+        data.highlightTag is string && data.highlightTag.size() >= 2 && data.highlightTag.size() <= 80 &&
+        data.description is string && data.description.size() >= 5 && data.description.size() <= 2000 &&
+        data.imageUrl is string && data.imageUrl.size() >= 5 && data.imageUrl.size() <= 500 &&
+        data.showOnCarousel is bool &&
+        data.showInUpcoming is bool &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidGroupMember(data) {
+      return data.keys().hasAll([
+          'uniqueId', 'groupId', 'groupName', 'fullName', 'role',
+          'company', 'nationalId', 'phone', 'email', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'uniqueId', 'groupId', 'groupName', 'fullName', 'role',
+          'company', 'nationalId', 'phone', 'email', 'createdAt', 'updatedAt'
+        ]) &&
+        data.uniqueId is string && data.uniqueId.size() >= 1 && data.uniqueId.size() <= 64 && data.uniqueId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.groupId is string && data.groupId.size() >= 1 && data.groupId.size() <= 64 && data.groupId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.groupName is string && data.groupName.size() >= 2 && data.groupName.size() <= 140 &&
+        data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 120 &&
+        data.role is string && data.role.size() >= 2 && data.role.size() <= 80 &&
+        data.company is string && data.company.size() >= 1 && data.company.size() <= 120 &&
+        data.nationalId is string && data.nationalId.size() >= 4 && data.nationalId.size() <= 40 &&
+        data.phone is string && data.phone.size() >= 5 && data.phone.size() <= 30 &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 254 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
     // =========================================================================
     // 4. COLLECTION MATCH BLOCKS
     // =========================================================================
 
-    // Collection: /users/{userId} (PII Isolated to Owner or Admin)
+    // Collection: /users/{userId} (PII Isolated to Owner or Admin, Self-Assigned Roles Blocked)
     match /users/{userId} {
       allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
-      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isBootstrappedAdmin());
 
       allow create: if isVerified() &&
         isValidId(userId) &&
         isOwner(userId) &&
         isValidUserProfile(incoming()) &&
         incoming().uid == request.auth.uid &&
+        (incoming().role == 'member' || isAdmin()) &&
         incoming().createdAt == request.time &&
         incoming().updatedAt == request.time;
 
@@ -233,7 +293,9 @@ service cloud.firestore {
         incoming().createdAt == existing().createdAt &&
         incoming().updatedAt == request.time && (
           isAdmin() ||
-          (isOwner(userId) && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'role', 'organization', 'updatedAt']))
+          (isOwner(userId) &&
+            incoming().role == existing().role &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'organization', 'updatedAt']))
         );
 
       allow delete: if isAdmin() && isValidId(userId);
@@ -242,7 +304,7 @@ service cloud.firestore {
     // Collection: /admins/{adminId}
     match /admins/{adminId} {
       allow get: if isValidId(adminId) && (isOwner(adminId) || isAdmin());
-      allow list: if isAdmin();
+      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isBootstrappedAdmin());
 
       allow create: if isAdmin() &&
         isValidId(adminId) &&
@@ -296,7 +358,7 @@ service cloud.firestore {
     // Collection: /transactions/{transactionId} (Per-User Scoped Financial Records)
     match /transactions/{transactionId} {
       allow get: if isSignedIn() && isValidId(transactionId) && (existing().userId == request.auth.uid || isAdmin());
-      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isBootstrappedAdmin());
 
       allow create: if isVerified() &&
         isValidId(transactionId) &&
@@ -323,7 +385,7 @@ service cloud.firestore {
     // Collection: /inquiries/{inquiryId} (Per-User Scoped Partner Dossiers)
     match /inquiries/{inquiryId} {
       allow get: if isSignedIn() && isValidId(inquiryId) && (existing().userId == request.auth.uid || isAdmin());
-      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isBootstrappedAdmin());
 
       allow create: if isVerified() &&
         isValidId(inquiryId) &&
@@ -351,7 +413,7 @@ service cloud.firestore {
     // Collection: /investments/{investmentId} (Per-User Scoped Capital Commitments)
     match /investments/{investmentId} {
       allow get: if isSignedIn() && isValidId(investmentId) && (existing().userId == request.auth.uid || isAdmin());
-      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isBootstrappedAdmin());
 
       allow create: if isVerified() &&
         isValidId(investmentId) &&
@@ -398,11 +460,13 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Collection: /newsletter_subscriptions/{subscriptionId} (Admin Read, Validated Consent Create)
+    // Collection: /newsletter_subscriptions/{subscriptionId} (Admin Read, Verified Consent Create)
     match /newsletter_subscriptions/{subscriptionId} {
-      allow get, list: if isAdmin();
+      allow get: if isValidId(subscriptionId) && isAdmin();
+      allow list: if isBootstrappedAdmin() && resource.data.consent == true;
 
-      allow create: if isValidId(subscriptionId) &&
+      allow create: if isVerified() &&
+        isValidId(subscriptionId) &&
         isValidNewsletterSubscription(incoming()) &&
         incoming().id == subscriptionId &&
         incoming().createdAt == request.time;
@@ -411,9 +475,67 @@ service cloud.firestore {
         isValidId(subscriptionId) &&
         isValidNewsletterSubscription(incoming()) &&
         incoming().id == existing().id &&
-        incoming().createdAt == existing().createdAt;
+        incoming().reference == existing().reference &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'email', 'subscriberName', 'organisation', 'consent'
+        ]);
 
       allow delete: if isAdmin() && isValidId(subscriptionId);
+    }
+
+    // Collection: /safari_events/{eventId} (Public Read, Admin-Only Write)
+    match /safari_events/{eventId} {
+      allow get: if isValidId(eventId);
+      allow list: if resource.data.spotsAvailable >= 0;
+
+      allow create: if isAdmin() &&
+        isValidId(eventId) &&
+        isValidSafariEvent(incoming()) &&
+        incoming().id == eventId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isAdmin() &&
+        isValidId(eventId) &&
+        isValidSafariEvent(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'category', 'subtitle', 'dateLabel', 'location',
+          'duration', 'priceLabel', 'spotsAvailable', 'highlightTag',
+          'description', 'imageUrl', 'showOnCarousel', 'showInUpcoming', 'updatedAt'
+        ]);
+
+      allow delete: if isAdmin() && isValidId(eventId);
+    }
+
+    // Collection: /group_members/{memberId} (Admin-Only PII Registry)
+    match /group_members/{memberId} {
+      allow get: if isValidId(memberId) && isAdmin();
+      allow list: if isBootstrappedAdmin() && resource.data.uniqueId != '';
+
+      allow create: if isAdmin() &&
+        isValidId(memberId) &&
+        isValidGroupMember(incoming()) &&
+        incoming().uniqueId == memberId &&
+        exists(/databases/$(database)/documents/groups/$(incoming().groupId)) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isAdmin() &&
+        isValidId(memberId) &&
+        isValidGroupMember(incoming()) &&
+        incoming().uniqueId == existing().uniqueId &&
+        incoming().groupId == existing().groupId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'groupName', 'fullName', 'role', 'company', 'nationalId', 'phone', 'email', 'updatedAt'
+        ]);
+
+      allow delete: if isAdmin() && isValidId(memberId);
     }
 
     // Collection: /test/{testId} (Read-only Connectivity Probe)

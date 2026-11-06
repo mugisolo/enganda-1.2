@@ -535,6 +535,181 @@
         "targetGoalYouth",
         "createdAt"
       ]
+    },
+    "SafariEvent": {
+      "title": "SafariEvent",
+      "description": "ENGANDA Safari eco-tourism trip, conservation expedition, or upcoming youth network program.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 160
+        },
+        "category": {
+          "type": "string",
+          "enum": ["Safari & Eco-Tour", "Upcoming Program", "Conservation Expedition", "Youth Summit"],
+          "minLength": 5,
+          "maxLength": 40
+        },
+        "subtitle": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 200
+        },
+        "dateLabel": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "location": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 140
+        },
+        "duration": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60
+        },
+        "priceLabel": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "spotsAvailable": {
+          "type": "number"
+        },
+        "highlightTag": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "description": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 2000
+        },
+        "imageUrl": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 500
+        },
+        "showOnCarousel": {
+          "type": "boolean"
+        },
+        "showInUpcoming": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category",
+        "subtitle",
+        "dateLabel",
+        "location",
+        "duration",
+        "priceLabel",
+        "spotsAvailable",
+        "highlightTag",
+        "description",
+        "imageUrl",
+        "showOnCarousel",
+        "showInUpcoming",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "GroupMember": {
+      "title": "GroupMember",
+      "description": "Verified youth cooperative member record containing PII (nationalId, phone, email) strictly isolated to admins.",
+      "type": "object",
+      "properties": {
+        "uniqueId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "groupId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "groupName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 140
+        },
+        "fullName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "role": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "company": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "nationalId": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 40
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 30
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uniqueId",
+        "groupId",
+        "groupName",
+        "fullName",
+        "role",
+        "company",
+        "nationalId",
+        "phone",
+        "email",
+        "createdAt",
+        "updatedAt"
+      ]
     }
   },
   "firestore": {
@@ -569,6 +744,14 @@
     "/newsletter_subscriptions/{subscriptionId}": {
       "schema": { "$ref": "#/entities/NewsletterSubscription" },
       "description": "Quarterly ENGANDA Impact Newsletter subscriptions with explicit user consent."
+    },
+    "/safari_events/{eventId}": {
+      "schema": { "$ref": "#/entities/SafariEvent" },
+      "description": "Publicly readable ENGANDA Safaris, eco-tours, and upcoming youth programs managed by admins."
+    },
+    "/group_members/{memberId}": {
+      "schema": { "$ref": "#/entities/GroupMember" },
+      "description": "Admin-isolated cooperative member registry containing National ID and contact PII."
     }
   }
 }
