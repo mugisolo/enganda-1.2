@@ -1,4 +1,5 @@
 import express, { type Request, type Response } from 'express';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
@@ -7,10 +8,14 @@ import {
   loadOrInitializeStore,
   saveStore,
   normalizeDuplicateKey,
+  generateAvatarDataUri,
   type NetworkGroupRecord,
   type PrivateMemberRecord,
   type SupportEnquiryRecord,
   type NewsletterSubscriptionRecord,
+  type SafariEventRecord,
+  type SafariEventCategory,
+  PHOTO_ASSETS,
 } from './server-data/seedStore.ts';
 
 dotenv.config();
@@ -65,9 +70,12 @@ function canManageGroup(caller: CallerContext | null, groupId: string): boolean 
 function toPublicGroupProfile(group: NetworkGroupRecord, memberCount: number) {
   return {
     id: group.id,
+    uniqueGroupCode: group.uniqueGroupCode,
     slug: group.slug,
     name: group.name,
     programmeType: group.programmeType,
+    sector: group.sector,
+    companyAffiliation: group.companyAffiliation,
     isProgrammeOnly: group.isProgrammeOnly,
     location: group.location,
     mapCoords: group.mapCoords,
@@ -81,6 +89,9 @@ function toPublicGroupProfile(group: NetworkGroupRecord, memberCount: number) {
     websiteUrl: group.websiteUrl || '',
     activities: group.activities || [],
     sponsorshipPackages: group.sponsorshipPackages || [],
+    galleryImages: Array.isArray(group.galleryImages)
+      ? group.galleryImages.slice(0, 5)
+      : [],
     updatedAt: group.updatedAt,
   };
 }
@@ -93,17 +104,34 @@ function getGroupMemberCountMap(): Map<string, number> {
   return counts;
 }
 
+function parseSkillsInput(rawSkills: unknown): string[] {
+  if (Array.isArray(rawSkills)) {
+    return rawSkills
+      .map((s) => String(s || '').trim().slice(0, 60))
+      .filter(Boolean)
+      .slice(0, 12);
+  }
+  if (typeof rawSkills === 'string' && rawSkills.trim() !== '') {
+    return rawSkills
+      .split(/[,;|]/)
+      .map((s) => s.trim().slice(0, 60))
+      .filter(Boolean)
+      .slice(0, 12);
+  }
+  return ['Group Savings', 'Enterprise Trade'];
+}
+
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
 
-  app.use(express.json({ limit: '5mb' }));
+  app.use(express.json({ limit: '15mb' }));
 
   // ===========================================================================
   // 1. PUBLIC DIRECTORY API (Strict Field Whitelisting)
   // ===========================================================================
   app.get('/api/directory', (req: Request, res: Response) => {
-    const { search, location, programmeType, representative } = req.query;
+    const { search, location, programmeType, sector, representative } = req.query;
     const countMap = getGroupMemberCountMap();
 
     let profiles = store.groups.map((g) =>
@@ -120,6 +148,11 @@ async function startServer() {
       profiles = profiles.filter((p) => p.programmeType.toLowerCase() === typeQuery);
     }
 
+    if (sector && sector !== 'all') {
+      const sectorQuery = String(sector).toLowerCase();
+      profiles = profiles.filter((p) => p.sector.toLowerCase().includes(sectorQuery));
+    }
+
     if (representative && representative !== 'all') {
       const repQuery = String(representative).toLowerCase();
       profiles = profiles.filter((p) =>
@@ -132,6 +165,8 @@ async function startServer() {
       profiles = profiles.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
+          p.uniqueGroupCode.toLowerCase().includes(q) ||
+          p.sector.toLowerCase().includes(q) ||
           p.location.toLowerCase().includes(q) ||
           p.representativeName.toLowerCase().includes(q) ||
           p.programmeType.toLowerCase().includes(q) ||
@@ -146,12 +181,15 @@ async function startServer() {
 
     const uniqueLocations = Array.from(new Set(store.groups.map((g) => g.location)));
     const uniqueTypes = Array.from(new Set(store.groups.map((g) => g.programmeType)));
+    const uniqueSectors = Array.from(new Set(store.groups.map((g) => g.sector)));
     const uniqueRepresentatives = Array.from(
       new Set(store.groups.map((g) => g.representativeName))
     );
 
     res.json({
       profiles,
+      siteMedia: store.siteMedia,
+      safariEvents: store.safariEvents || [],
       meta: {
         totalPublicProfiles: store.groups.length,
         memberGroupsCount: store.groups.filter((g) => !g.isProgrammeOnly).length,
@@ -159,9 +197,18 @@ async function startServer() {
         totalSuppliedMemberRecords: totalMemberRecords,
         locations: uniqueLocations,
         programmeTypes: uniqueTypes,
+        sectors: uniqueSectors,
         representatives: uniqueRepresentatives,
       },
     });
+  });
+
+  app.get('/api/site-media', (_req: Request, res: Response) => {
+    res.json({ siteMedia: store.siteMedia });
+  });
+
+  app.get('/api/safari-events', (_req: Request, res: Response) => {
+    res.json({ safariEvents: store.safariEvents || [] });
   });
 
   app.get('/api/directory/:idOrSlug', (req: Request, res: Response) => {
@@ -420,11 +467,14 @@ async function startServer() {
       results = results.filter(
         (m) =>
           m.fullName.toLowerCase().includes(q) ||
+          (m.uniqueId || '').toLowerCase().includes(q) ||
+          (m.company || '').toLowerCase().includes(q) ||
           m.title.toLowerCase().includes(q) ||
           m.phone.toLowerCase().includes(q) ||
           m.email.toLowerCase().includes(q) ||
           m.nationalId.toLowerCase().includes(q) ||
-          m.location.toLowerCase().includes(q)
+          m.location.toLowerCase().includes(q) ||
+          (Array.isArray(m.skills) && m.skills.some((s) => s.toLowerCase().includes(q)))
       );
     }
 
@@ -451,7 +501,19 @@ async function startServer() {
       });
     }
 
-    const { groupId, fullName, title, phone, email, nationalId, location } = req.body;
+    const {
+      uniqueId,
+      groupId,
+      company,
+      photoUrl,
+      fullName,
+      title,
+      phone,
+      email,
+      nationalId,
+      skills,
+      location,
+    } = req.body;
     if (!groupId || !fullName || !phone) {
       return res.status(400).json({
         error: 'Group, full name, and phone number are required.',
@@ -480,14 +542,32 @@ async function startServer() {
     }
 
     const now = new Date().toISOString();
+    const nextCodeNum = store.members.length + 1;
+    const resolvedUniqueId =
+      uniqueId && String(uniqueId).trim() !== ''
+        ? String(uniqueId).trim().toUpperCase().slice(0, 40)
+        : `ENG-MEM-${String(nextCodeNum).padStart(4, '0')}`;
+
+    const cleanFullName = String(fullName).trim().slice(0, 140);
+    const resolvedPhoto =
+      photoUrl && String(photoUrl).trim() !== ''
+        ? String(photoUrl).trim()
+        : generateAvatarDataUri(cleanFullName, nextCodeNum);
+
     const newMember: PrivateMemberRecord = {
       id: `mem-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+      uniqueId: resolvedUniqueId,
       groupId: String(groupId),
-      fullName: String(fullName).trim().slice(0, 140),
+      company: String(company || targetGroup.companyAffiliation || targetGroup.name)
+        .trim()
+        .slice(0, 140),
+      photoUrl: resolvedPhoto,
+      fullName: cleanFullName,
       title: String(title || 'Registered Member').trim().slice(0, 100),
       phone: String(phone).trim().slice(0, 40),
       email: String(email || '').trim().slice(0, 254),
       nationalId: String(nationalId || '').trim().toUpperCase().slice(0, 40),
+      skills: parseSkillsInput(skills),
       location: String(location || targetGroup.location).trim().slice(0, 140),
       createdAt: now,
       updatedAt: now,
@@ -531,13 +611,27 @@ async function startServer() {
       });
     }
 
+    const updatedFullName =
+      req.body.fullName !== undefined
+        ? String(req.body.fullName).trim().slice(0, 140)
+        : existing.fullName;
+
     const updated: PrivateMemberRecord = {
       ...existing,
+      uniqueId:
+        req.body.uniqueId !== undefined && String(req.body.uniqueId).trim() !== ''
+          ? String(req.body.uniqueId).trim().toUpperCase().slice(0, 40)
+          : existing.uniqueId,
       groupId: targetGroupId,
-      fullName:
-        req.body.fullName !== undefined
-          ? String(req.body.fullName).trim().slice(0, 140)
-          : existing.fullName,
+      company:
+        req.body.company !== undefined
+          ? String(req.body.company).trim().slice(0, 140)
+          : existing.company,
+      photoUrl:
+        req.body.photoUrl !== undefined && String(req.body.photoUrl).trim() !== ''
+          ? String(req.body.photoUrl).trim()
+          : existing.photoUrl || generateAvatarDataUri(updatedFullName, idx + 1),
+      fullName: updatedFullName,
       title:
         req.body.title !== undefined
           ? String(req.body.title).trim().slice(0, 100)
@@ -554,6 +648,8 @@ async function startServer() {
         req.body.nationalId !== undefined
           ? String(req.body.nationalId).trim().toUpperCase().slice(0, 40)
           : existing.nationalId,
+      skills:
+        req.body.skills !== undefined ? parseSkillsInput(req.body.skills) : existing.skills,
       location:
         req.body.location !== undefined
           ? String(req.body.location).trim().slice(0, 140)
@@ -630,12 +726,18 @@ async function startServer() {
       const phone = String(r.phone || r.contact || '').trim();
       const title = String(r.title || r.role || 'Registered Member').trim();
       const email = String(r.email || '').trim();
-      const nationalId = String(r.nationalId || r.nin || '').trim().toUpperCase();
+      const nationalId = String(r.nationalId || r.nin || r.passport || '')
+        .trim()
+        .toUpperCase();
+      const company = String(r.company || r.enterprise || '').trim();
+      const uniqueId = String(r.uniqueId || r.memberId || '').trim().toUpperCase();
+      const skills = parseSkillsInput(r.skills);
       const rawGroup = String(r.groupId || r.group || defaultGroupId || '').trim();
 
       const matchedGroup = store.groups.find(
         (g) =>
           g.id === rawGroup ||
+          g.uniqueGroupCode?.toLowerCase() === rawGroup.toLowerCase() ||
           g.slug.toLowerCase() === rawGroup.toLowerCase() ||
           g.name.toLowerCase() === rawGroup.toLowerCase()
       );
@@ -683,15 +785,23 @@ async function startServer() {
 
       existingKeys.add(dupKey);
       const location = String(r.location || matchedGroup.location).trim();
+      const seqNum = store.members.length + 1;
 
       store.members.push({
         id: `mem-${Date.now()}-${i}-${Math.floor(100 + Math.random() * 899)}`,
+        uniqueId: uniqueId || `ENG-MEM-${String(seqNum).padStart(4, '0')}`,
         groupId: matchedGroup.id,
+        company: (company || matchedGroup.companyAffiliation || matchedGroup.name).slice(0, 140),
+        photoUrl:
+          r.photoUrl && String(r.photoUrl).trim() !== ''
+            ? String(r.photoUrl).trim()
+            : generateAvatarDataUri(fullName, seqNum),
         fullName: fullName.slice(0, 140),
         title: title.slice(0, 100),
         phone: phone.slice(0, 40),
         email: email.slice(0, 254),
         nationalId: nationalId.slice(0, 40),
+        skills,
         location: location.slice(0, 140),
         createdAt: now,
         updatedAt: now,
@@ -764,6 +874,12 @@ async function startServer() {
         req.body.websiteUrl !== undefined
           ? String(req.body.websiteUrl).trim().slice(0, 300)
           : existing.websiteUrl,
+      galleryImages: Array.isArray(req.body.galleryImages)
+        ? req.body.galleryImages
+            .map((img: unknown) => String(img || '').trim())
+            .filter(Boolean)
+            .slice(0, 5)
+        : existing.galleryImages || [],
       updatedAt: new Date().toISOString(),
     };
 
@@ -774,6 +890,274 @@ async function startServer() {
     return res.json({
       success: true,
       profile: toPublicGroupProfile(updated, countMap.get(updated.id) || 0),
+    });
+  });
+
+  app.put('/api/admin/site-media', (req: Request, res: Response) => {
+    const caller = resolveCaller(req);
+    if (!caller || (!caller.isGlobalAdmin && caller.assignedGroupIds.length === 0)) {
+      return res.status(403).json({
+        error: 'Administrator privileges required to replace site photos.',
+      });
+    }
+
+    const allowedKeys = [
+      'heroBannerImage',
+      'aboutMissionImage',
+      'organiseStageImage',
+      'formaliseStageImage',
+      'growStageImage',
+      'humanCapacityImage',
+      'economicStructureImage',
+      'civicAgencyImage',
+      'sizStewardshipImage',
+      'egyaBannerImage',
+      'leoleoBannerImage',
+      'founderMugisaImage',
+      'founderRonnieImage',
+    ] as const;
+
+    const updatedMedia = { ...store.siteMedia };
+    for (const key of allowedKeys) {
+      if (req.body[key] !== undefined && String(req.body[key]).trim() !== '') {
+        updatedMedia[key] = String(req.body[key]).trim();
+      }
+    }
+
+    store.siteMedia = updatedMedia;
+    saveStore(store);
+
+    return res.json({
+      success: true,
+      siteMedia: store.siteMedia,
+    });
+  });
+
+  // ===========================================================================
+  // 5B. ADMIN: ENGANDA SAFARIS, EVENTS & UPCOMING PROGRAMS (Carousel & Upcoming)
+  // ===========================================================================
+  app.post('/api/admin/safari-events', (req: Request, res: Response) => {
+    const caller = resolveCaller(req);
+    if (!caller || (!caller.isGlobalAdmin && caller.assignedGroupIds.length === 0)) {
+      return res.status(403).json({
+        error: 'Administrator privileges required to load new events or trips.',
+      });
+    }
+
+    const {
+      code,
+      title,
+      category,
+      dateLabel,
+      durationLabel,
+      location,
+      feeOrSponsorshipLabel,
+      organizer,
+      summary,
+      highlights,
+      imageUrl,
+      showOnCarousel,
+      showInUpcoming,
+      ctaLabel,
+    } = req.body;
+
+    if (!title || !dateLabel || !location) {
+      return res.status(400).json({
+        error: 'Event / Trip title, date, and location are required.',
+      });
+    }
+
+    const validCategories: SafariEventCategory[] = [
+      'ENGANDA Safari & Eco-Trip',
+      'Youth Sports & Gala',
+      'SACCO & Enterprise Exchange',
+      'Tree Stewardship & Conservation',
+      'Community Cultural Expedition',
+    ];
+    const resolvedCategory: SafariEventCategory = validCategories.includes(category)
+      ? category
+      : 'ENGANDA Safari & Eco-Trip';
+
+    const now = new Date().toISOString();
+    const seq = (store.safariEvents?.length || 0) + 1;
+    const parsedHighlights = Array.isArray(highlights)
+      ? highlights.map((h) => String(h || '').trim()).filter(Boolean).slice(0, 6)
+      : typeof highlights === 'string' && highlights.trim() !== ''
+      ? highlights
+          .split(/[\n;]+/)
+          .map((h) => h.trim())
+          .filter(Boolean)
+          .slice(0, 6)
+      : ['Community guided itinerary', 'Youth enterprise & conservation focus'];
+
+    const newEvent: SafariEventRecord = {
+      id: `saf-${Date.now()}-${Math.floor(100 + Math.random() * 899)}`,
+      code:
+        code && String(code).trim() !== ''
+          ? String(code).trim().toUpperCase().slice(0, 24)
+          : `SAF-2025-${String(seq).padStart(2, '0')}`,
+      title: String(title).trim().slice(0, 160),
+      category: resolvedCategory,
+      dateLabel: String(dateLabel).trim().slice(0, 80),
+      durationLabel: String(durationLabel || 'Full Day Experience').trim().slice(0, 60),
+      location: String(location).trim().slice(0, 140),
+      feeOrSponsorshipLabel: String(
+        feeOrSponsorshipLabel || 'Open Registration • Partner Sponsorship Available'
+      )
+        .trim()
+        .slice(0, 120),
+      organizer: String(organizer || 'ENGANDA Safaris & Network Secretariat')
+        .trim()
+        .slice(0, 120),
+      summary: String(
+        summary ||
+          'Community expedition and capacity-building event organized under the ENGANDA umbrella.'
+      )
+        .trim()
+        .slice(0, 600),
+      highlights: parsedHighlights,
+      imageUrl:
+        imageUrl && String(imageUrl).trim() !== ''
+          ? String(imageUrl).trim()
+          : PHOTO_ASSETS.SAFARI_LAKE,
+      showOnCarousel: showOnCarousel !== undefined ? Boolean(showOnCarousel) : true,
+      showInUpcoming: showInUpcoming !== undefined ? Boolean(showInUpcoming) : true,
+      ctaLabel: String(ctaLabel || 'Book Safari / Register').trim().slice(0, 50),
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    if (!Array.isArray(store.safariEvents)) {
+      store.safariEvents = [];
+    }
+    store.safariEvents.unshift(newEvent);
+    saveStore(store);
+
+    return res.status(201).json({
+      success: true,
+      safariEvent: newEvent,
+      safariEvents: store.safariEvents,
+    });
+  });
+
+  app.put('/api/admin/safari-events/:eventId', (req: Request, res: Response) => {
+    const caller = resolveCaller(req);
+    if (!caller || (!caller.isGlobalAdmin && caller.assignedGroupIds.length === 0)) {
+      return res.status(403).json({
+        error: 'Administrator privileges required to update events or trips.',
+      });
+    }
+
+    const { eventId } = req.params;
+    if (!Array.isArray(store.safariEvents)) {
+      store.safariEvents = [];
+    }
+    const idx = store.safariEvents.findIndex((e) => e.id === eventId);
+    if (idx === -1) {
+      return res.status(404).json({ error: 'Safari trip or event not found.' });
+    }
+
+    const existing = store.safariEvents[idx];
+    const parsedHighlights =
+      req.body.highlights !== undefined
+        ? Array.isArray(req.body.highlights)
+          ? req.body.highlights
+              .map((h: unknown) => String(h || '').trim())
+              .filter(Boolean)
+              .slice(0, 6)
+          : String(req.body.highlights)
+              .split(/[\n;]+/)
+              .map((h) => h.trim())
+              .filter(Boolean)
+              .slice(0, 6)
+        : existing.highlights;
+
+    const updated: SafariEventRecord = {
+      ...existing,
+      code:
+        req.body.code !== undefined && String(req.body.code).trim() !== ''
+          ? String(req.body.code).trim().toUpperCase().slice(0, 24)
+          : existing.code,
+      title:
+        req.body.title !== undefined
+          ? String(req.body.title).trim().slice(0, 160)
+          : existing.title,
+      category:
+        req.body.category !== undefined ? req.body.category : existing.category,
+      dateLabel:
+        req.body.dateLabel !== undefined
+          ? String(req.body.dateLabel).trim().slice(0, 80)
+          : existing.dateLabel,
+      durationLabel:
+        req.body.durationLabel !== undefined
+          ? String(req.body.durationLabel).trim().slice(0, 60)
+          : existing.durationLabel,
+      location:
+        req.body.location !== undefined
+          ? String(req.body.location).trim().slice(0, 140)
+          : existing.location,
+      feeOrSponsorshipLabel:
+        req.body.feeOrSponsorshipLabel !== undefined
+          ? String(req.body.feeOrSponsorshipLabel).trim().slice(0, 120)
+          : existing.feeOrSponsorshipLabel,
+      organizer:
+        req.body.organizer !== undefined
+          ? String(req.body.organizer).trim().slice(0, 120)
+          : existing.organizer,
+      summary:
+        req.body.summary !== undefined
+          ? String(req.body.summary).trim().slice(0, 600)
+          : existing.summary,
+      highlights: parsedHighlights,
+      imageUrl:
+        req.body.imageUrl !== undefined && String(req.body.imageUrl).trim() !== ''
+          ? String(req.body.imageUrl).trim()
+          : existing.imageUrl,
+      showOnCarousel:
+        req.body.showOnCarousel !== undefined
+          ? Boolean(req.body.showOnCarousel)
+          : existing.showOnCarousel,
+      showInUpcoming:
+        req.body.showInUpcoming !== undefined
+          ? Boolean(req.body.showInUpcoming)
+          : existing.showInUpcoming,
+      ctaLabel:
+        req.body.ctaLabel !== undefined
+          ? String(req.body.ctaLabel).trim().slice(0, 50)
+          : existing.ctaLabel,
+      updatedAt: new Date().toISOString(),
+    };
+
+    store.safariEvents[idx] = updated;
+    saveStore(store);
+
+    return res.json({
+      success: true,
+      safariEvent: updated,
+      safariEvents: store.safariEvents,
+    });
+  });
+
+  app.delete('/api/admin/safari-events/:eventId', (req: Request, res: Response) => {
+    const caller = resolveCaller(req);
+    if (!caller || (!caller.isGlobalAdmin && caller.assignedGroupIds.length === 0)) {
+      return res.status(403).json({
+        error: 'Administrator privileges required to delete events or trips.',
+      });
+    }
+
+    const { eventId } = req.params;
+    const prevLen = store.safariEvents?.length || 0;
+    store.safariEvents = (store.safariEvents || []).filter((e) => e.id !== eventId);
+    if (store.safariEvents.length === prevLen) {
+      return res.status(404).json({ error: 'Safari trip or event not found.' });
+    }
+
+    saveStore(store);
+    return res.json({
+      success: true,
+      deletedId: eventId,
+      safariEvents: store.safariEvents,
     });
   });
 
@@ -932,11 +1316,12 @@ async function startServer() {
   });
 
   // Serve Frontend
-  const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.K_SERVICE);
-  if (isProduction) {
-    app.use(express.static(path.resolve(__dirname, 'dist')));
+  const distPath = path.resolve(__dirname, 'dist');
+  const distIndex = path.resolve(distPath, 'index.html');
+  if (process.env.NODE_ENV === 'production' && fs.existsSync(distIndex)) {
+    app.use(express.static(distPath));
     app.get('*', (_req, res) => {
-      res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
+      res.sendFile(distIndex);
     });
   } else {
     const vite = await createViteServer({

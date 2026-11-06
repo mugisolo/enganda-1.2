@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Trophy,
   TreePine,
@@ -10,22 +10,57 @@ import {
   Users,
   Briefcase,
   Sparkles,
+  Camera,
+  Images,
 } from 'lucide-react';
-import { PublicGroupProfile, SupportEnquiryPreset } from '../types';
-import { TREE_PLANTING_IMAGE } from '../data/content';
+import { PublicGroupProfile, SiteMediaSettings, SupportEnquiryPreset } from '../types';
+import {
+  TREE_PLANTING_IMAGE,
+  SACCO_GOVERNANCE_IMAGE,
+  BRIQUETTE_ENERGY_IMAGE,
+  SIZ_ACADEMY_IMAGE,
+} from '../data/content';
 
 interface FlagshipProgrammesSectionProps {
   profiles: PublicGroupProfile[];
+  siteMedia: SiteMediaSettings;
   onOpenSupportModal: (preset: SupportEnquiryPreset) => void;
+  onOpenGroupGalleryEditor: (groupId: string) => void;
+  onOpenPhotoReplacer: () => void;
 }
 
 export const FlagshipProgrammesSection: React.FC<FlagshipProgrammesSectionProps> = ({
   profiles,
+  siteMedia,
   onOpenSupportModal,
+  onOpenGroupGalleryEditor,
+  onOpenPhotoReplacer,
 }) => {
   const sizProfile = profiles.find((p) => p.id === 'grp-siz-academy');
   const egyaProfile = profiles.find((p) => p.id === 'grp-egya');
   const leoleoProfile = profiles.find((p) => p.id === 'grp-leoleo');
+
+  const [sizActiveImgIdx, setSizActiveImgIdx] = useState(0);
+  const [egyaActiveImgIdx, setEgyaActiveImgIdx] = useState(0);
+  const [leoleoActiveImgIdx, setLeoleoActiveImgIdx] = useState(0);
+
+  const sizGallery = (
+    sizProfile?.galleryImages?.length
+      ? sizProfile.galleryImages
+      : [SIZ_ACADEMY_IMAGE, siteMedia.sizStewardshipImage || TREE_PLANTING_IMAGE]
+  ).slice(0, 5);
+
+  const egyaGallery = (
+    egyaProfile?.galleryImages?.length
+      ? egyaProfile.galleryImages
+      : [siteMedia.egyaBannerImage || SACCO_GOVERNANCE_IMAGE]
+  ).slice(0, 5);
+
+  const leoleoGallery = (
+    leoleoProfile?.galleryImages?.length
+      ? leoleoProfile.galleryImages
+      : [siteMedia.leoleoBannerImage || BRIQUETTE_ENERGY_IMAGE]
+  ).slice(0, 5);
 
   const sizPackages = sizProfile?.sponsorshipPackages?.length
     ? sizProfile.sponsorshipPackages
@@ -63,22 +98,57 @@ export const FlagshipProgrammesSection: React.FC<FlagshipProgrammesSectionProps>
   return (
     <section id="programmes" className="py-16 sm:py-24 bg-white border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-        {/* Section Header */}
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#0F5132] mb-3">
-            <Sparkles className="w-4 h-4" />
-            <span>Programme Hierarchy & Network Anchors</span>
+        {/* Section Header with Right-Column Showcase Photo Strip */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div className="lg:col-span-7">
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#0F5132] mb-3">
+              <Sparkles className="w-4 h-4" />
+              <span>Programme Hierarchy & Network Anchors</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-['Plus_Jakarta_Sans',sans-serif]">
+              Distinct Programmes Under the ENGANDA Umbrella
+            </h2>
+            <p className="mt-3 text-base sm:text-lg text-slate-600 leading-relaxed">
+              ENGANDA operates as the parent umbrella organisation. Within the network,{' '}
+              <strong className="text-slate-900">SIZ Football Academy</strong>,{' '}
+              <strong className="text-slate-900">EGYA Association</strong>, and{' '}
+              <strong className="text-slate-900">LeoLeo</strong> maintain their own distinct
+              leadership, projects, and 5-photo community galleries.
+            </p>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-['Plus_Jakarta_Sans',sans-serif]">
-            Distinct Programmes Under the ENGANDA Umbrella
-          </h2>
-          <p className="mt-3 text-base sm:text-lg text-slate-600 leading-relaxed">
-            ENGANDA operates as the parent umbrella organisation. Within the network,{' '}
-            <strong className="text-slate-900">SIZ Football Academy</strong>,{' '}
-            <strong className="text-slate-900">EGYA Association</strong>, and{' '}
-            <strong className="text-slate-900">LeoLeo</strong> maintain their own distinct
-            leadership, projects, and community identities.
-          </p>
+
+          <div className="lg:col-span-5 grid grid-cols-2 gap-3">
+            <div className="relative h-36 rounded-2xl overflow-hidden border border-slate-200 bg-slate-900">
+              <img
+                src={sizGallery[0] || SIZ_ACADEMY_IMAGE}
+                alt="SIZ Football Academy Youth Training"
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-3">
+                <span className="text-[11px] font-bold text-white">SIZ Football Academy</span>
+              </div>
+            </div>
+            <div className="relative h-36 rounded-2xl overflow-hidden border border-slate-200 bg-slate-900">
+              <img
+                src={siteMedia.sizStewardshipImage || TREE_PLANTING_IMAGE}
+                alt="Plant a Tree, Plant a Player Initiative"
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end justify-between p-3">
+                <span className="text-[11px] font-bold text-amber-300">Tree Stewardship</span>
+                <button
+                  type="button"
+                  onClick={onOpenPhotoReplacer}
+                  className="p-1 rounded bg-slate-950/80 text-white hover:text-amber-300 cursor-pointer"
+                  title="Replace Photo"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* 1. Dedicated SIZ Football Academy Feature Profile */}
@@ -100,6 +170,14 @@ export const FlagshipProgrammesSection: React.FC<FlagshipProgrammesSectionProps>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => onOpenGroupGalleryEditor('grp-siz-academy')}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-900 hover:bg-emerald-800 text-amber-300 border border-emerald-700 text-xs font-bold transition-colors cursor-pointer"
+              >
+                <Images className="w-3.5 h-3.5" />
+                <span>Manage 5-Photo Gallery ({sizGallery.length}/5)</span>
+              </button>
               {sizProfile?.websiteUrl && (
                 <a
                   href={sizProfile.websiteUrl}
@@ -130,7 +208,7 @@ export const FlagshipProgrammesSection: React.FC<FlagshipProgrammesSectionProps>
           </div>
 
           <div className="p-6 sm:p-10 space-y-10">
-            {/* SIZ Overview + Environmental Stewardship Attribution */}
+            {/* SIZ Overview + Interactive 5-Photo Gallery Card */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               <div className="lg:col-span-7 space-y-5">
                 <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 bg-white px-4 py-3 rounded-xl border border-slate-200">
@@ -184,25 +262,71 @@ export const FlagshipProgrammesSection: React.FC<FlagshipProgrammesSectionProps>
                 </div>
               </div>
 
-              {/* Right Column: SIZ "Plant a Tree, Plant a Player" Visual Card */}
+              {/* Right Column: SIZ 5-Photo Gallery & Environmental Stewardship Card */}
               <div className="lg:col-span-5">
                 <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                  <div className="relative h-52 overflow-hidden">
+                  <div className="relative h-56 overflow-hidden bg-slate-900">
                     <img
-                      src={TREE_PLANTING_IMAGE}
-                      alt="SIZ Football Academy - Plant a Tree, Plant a Player"
+                      src={
+                        sizGallery[sizActiveImgIdx] ||
+                        siteMedia.sizStewardshipImage ||
+                        TREE_PLANTING_IMAGE
+                      }
+                      alt="SIZ Football Academy Gallery"
+                      referrerPolicy="no-referrer"
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent flex flex-col justify-end p-4">
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-300">
-                        <TreePine className="w-3.5 h-3.5" />
-                        SIZ Environmental Stewardship Initiative
-                      </span>
-                      <div className="text-lg font-extrabold text-white mt-0.5">
-                        “Plant a Tree, Plant a Player”
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent flex flex-col justify-between p-4">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 rounded bg-slate-950/80 text-white text-[10px] font-bold">
+                          Photo {(sizActiveImgIdx % sizGallery.length) + 1} of {sizGallery.length}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => onOpenGroupGalleryEditor('grp-siz-academy')}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-950/80 hover:bg-amber-500 hover:text-slate-950 text-amber-300 text-[10px] font-bold transition-colors cursor-pointer"
+                        >
+                          <Camera className="w-3 h-3" />
+                          <span>Edit Gallery</span>
+                        </button>
+                      </div>
+                      <div>
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-300">
+                          <TreePine className="w-3.5 h-3.5" />
+                          SIZ 5-Photo Showcase & Stewardship
+                        </span>
+                        <div className="text-lg font-extrabold text-white mt-0.5">
+                          “Plant a Tree, Plant a Player”
+                        </div>
                       </div>
                     </div>
                   </div>
+
+                  {/* 5-Thumbnail Selector Strip */}
+                  {sizGallery.length > 1 && (
+                    <div className="grid grid-cols-5 gap-1.5 p-2.5 bg-slate-50 border-b border-slate-200">
+                      {sizGallery.map((imgUrl, idx) => (
+                        <button
+                          key={`${imgUrl}-${idx}`}
+                          type="button"
+                          onClick={() => setSizActiveImgIdx(idx)}
+                          className={`relative h-11 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                            sizActiveImgIdx === idx
+                              ? 'border-[#0F5132] ring-1 ring-[#0F5132]'
+                              : 'border-transparent opacity-70 hover:opacity-100'
+                          }`}
+                        >
+                          <img
+                            src={imgUrl}
+                            alt={`SIZ gallery thumbnail ${idx + 1}`}
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
                   <div className="p-5 space-y-3">
                     <p className="text-xs text-slate-600 leading-relaxed">
                       <strong>Programme Attribution:</strong> The{' '}
@@ -305,57 +429,115 @@ export const FlagshipProgrammesSection: React.FC<FlagshipProgrammesSectionProps>
           </div>
         </div>
 
-        {/* 2. Distinct Profiles for EGYA Association and LeoLeo */}
+        {/* 2. Distinct Profiles for EGYA Association and LeoLeo (With 5-Photo Galleries) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* EGYA Association Card */}
-          <div className="bg-[#FAF9F6] rounded-3xl border border-slate-200 p-6 sm:p-8 flex flex-col justify-between shadow-sm">
-            <div className="space-y-5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="px-3 py-1 rounded-full bg-emerald-100 text-[#0F5132] text-xs font-extrabold uppercase tracking-wider">
-                  {egyaProfile?.programmeType || 'Savings & Youth Association'}
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-bold text-slate-800">
-                  <Users className="w-3.5 h-3.5 text-[#0F5132]" />
-                  <span>{egyaProfile?.memberCount ?? 51} Supplied Member Records</span>
-                </span>
-              </div>
-
-              <div>
-                <h3 className="text-2xl font-extrabold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">
-                  {egyaProfile?.name || 'EGYA Association'}
-                </h3>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1.5">
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-[#0F5132]" />
-                    {egyaProfile?.location || 'Entebbe, Uganda'}
-                  </span>
-                  <span>•</span>
-                  <span className="inline-flex items-center gap-1">
-                    <UserCheck className="w-3.5 h-3.5 text-[#0F5132]" />
-                    Rep: <strong className="text-slate-800">{egyaProfile?.representativeName || 'Mugisa Solomon Byakutaaga'}</strong> ({egyaProfile?.representativeTitle || 'Association Chairperson'})
-                  </span>
+          <div className="bg-[#FAF9F6] rounded-3xl border border-slate-200 overflow-hidden flex flex-col justify-between shadow-sm">
+            <div>
+              {/* EGYA Visual Gallery Header */}
+              <div className="relative h-52 bg-slate-900 overflow-hidden">
+                <img
+                  src={
+                    egyaGallery[egyaActiveImgIdx] ||
+                    siteMedia.egyaBannerImage ||
+                    SACCO_GOVERNANCE_IMAGE
+                  }
+                  alt="EGYA Association Community Gallery"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent flex flex-col justify-between p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2.5 py-1 rounded bg-slate-950/80 text-amber-300 text-[10px] font-bold">
+                      EGYA Gallery • {(egyaActiveImgIdx % egyaGallery.length) + 1}/{egyaGallery.length}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onOpenGroupGalleryEditor('grp-egya')}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-950/80 hover:bg-amber-500 hover:text-slate-950 text-amber-300 text-[10px] font-bold transition-colors cursor-pointer"
+                    >
+                      <Camera className="w-3 h-3" />
+                      <span>Manage 5 Photos</span>
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="px-3 py-1 rounded-md bg-emerald-100 text-[#0F5132] text-xs font-extrabold uppercase tracking-wider">
+                      {egyaProfile?.programmeType || 'Savings & Youth Association'}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-white/95 text-xs font-bold text-slate-900">
+                      <Users className="w-3.5 h-3.5 text-[#0F5132]" />
+                      <span>{egyaProfile?.memberCount ?? 51} Supplied Member Records</span>
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <p className="text-sm text-slate-700 leading-relaxed">
-                {egyaProfile?.summary}
-              </p>
-
-              <div className="bg-white rounded-2xl p-4 border border-slate-200 space-y-2">
-                <div className="text-xs font-extrabold uppercase tracking-wider text-[#0F5132]">
-                  Project: {egyaProfile?.projectName || 'EGYA Livelihood & Collective Savings Strengthening'}
+              {egyaGallery.length > 1 && (
+                <div className="grid grid-cols-5 gap-1.5 px-4 py-2 bg-white border-b border-slate-200">
+                  {egyaGallery.map((imgUrl, idx) => (
+                    <button
+                      key={`${imgUrl}-${idx}`}
+                      type="button"
+                      onClick={() => setEgyaActiveImgIdx(idx)}
+                      className={`h-10 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                        egyaActiveImgIdx === idx
+                          ? 'border-[#0F5132]'
+                          : 'border-transparent opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={`EGYA thumbnail ${idx + 1}`}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  {egyaProfile?.projectDescription}
-                </p>
-                <div className="pt-2 text-xs text-slate-700">
-                  <strong className="text-slate-900">Support Focus:</strong>{' '}
-                  {egyaProfile?.supportFocus}
+              )}
+
+              <div className="p-6 sm:p-8 space-y-5">
+                <div>
+                  <h3 className="text-2xl font-extrabold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">
+                    {egyaProfile?.name || 'EGYA Association'}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1.5">
+                    <span className="inline-flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-[#0F5132]" />
+                      {egyaProfile?.location || 'Entebbe, Uganda'}
+                    </span>
+                    <span>•</span>
+                    <span className="inline-flex items-center gap-1">
+                      <UserCheck className="w-3.5 h-3.5 text-[#0F5132]" />
+                      Rep:{' '}
+                      <strong className="text-slate-800">
+                        {egyaProfile?.representativeName || 'Mugisa Solomon Byakutaaga'}
+                      </strong>{' '}
+                      ({egyaProfile?.representativeTitle || 'Association Chairperson'})
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-sm text-slate-700 leading-relaxed">{egyaProfile?.summary}</p>
+
+                <div className="bg-white rounded-2xl p-4 border border-slate-200 space-y-2">
+                  <div className="text-xs font-extrabold uppercase tracking-wider text-[#0F5132]">
+                    Project:{' '}
+                    {egyaProfile?.projectName ||
+                      'EGYA Livelihood & Collective Savings Strengthening'}
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {egyaProfile?.projectDescription}
+                  </p>
+                  <div className="pt-2 text-xs text-slate-700">
+                    <strong className="text-slate-900">Support Focus:</strong>{' '}
+                    {egyaProfile?.supportFocus}
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 pt-5 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+            <div className="px-6 sm:px-8 pb-6 sm:pb-8 pt-5 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
               {egyaProfile?.websiteUrl ? (
                 <a
                   href={egyaProfile.websiteUrl}
@@ -398,54 +580,113 @@ export const FlagshipProgrammesSection: React.FC<FlagshipProgrammesSectionProps>
           </div>
 
           {/* LeoLeo Programme Card */}
-          <div className="bg-[#FAF9F6] rounded-3xl border border-slate-200 p-6 sm:p-8 flex flex-col justify-between shadow-sm">
-            <div className="space-y-5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-extrabold uppercase tracking-wider">
-                  {leoleoProfile?.programmeType || 'Flagship Programme'}
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-bold text-slate-800">
-                  <Briefcase className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Enterprise & Skills Programme</span>
-                </span>
-              </div>
-
-              <div>
-                <h3 className="text-2xl font-extrabold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">
-                  {leoleoProfile?.name || 'LeoLeo'}
-                </h3>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1.5">
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-[#0F5132]" />
-                    {leoleoProfile?.location || 'Entebbe, Uganda'}
-                  </span>
-                  <span>•</span>
-                  <span className="inline-flex items-center gap-1">
-                    <UserCheck className="w-3.5 h-3.5 text-[#0F5132]" />
-                    Rep: <strong className="text-slate-800">{leoleoProfile?.representativeName || 'Ronnie Tumusiime'}</strong> ({leoleoProfile?.representativeTitle || 'Programme Coordinator'})
-                  </span>
+          <div className="bg-[#FAF9F6] rounded-3xl border border-slate-200 overflow-hidden flex flex-col justify-between shadow-sm">
+            <div>
+              {/* LeoLeo Visual Gallery Header */}
+              <div className="relative h-52 bg-slate-900 overflow-hidden">
+                <img
+                  src={
+                    leoleoGallery[leoleoActiveImgIdx] ||
+                    siteMedia.leoleoBannerImage ||
+                    BRIQUETTE_ENERGY_IMAGE
+                  }
+                  alt="LeoLeo Programme Gallery"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent flex flex-col justify-between p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2.5 py-1 rounded bg-slate-950/80 text-amber-300 text-[10px] font-bold">
+                      LeoLeo Gallery • {(leoleoActiveImgIdx % leoleoGallery.length) + 1}/
+                      {leoleoGallery.length}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onOpenGroupGalleryEditor('grp-leoleo')}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-950/80 hover:bg-amber-500 hover:text-slate-950 text-amber-300 text-[10px] font-bold transition-colors cursor-pointer"
+                    >
+                      <Camera className="w-3 h-3" />
+                      <span>Manage 5 Photos</span>
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="px-3 py-1 rounded-md bg-amber-100 text-amber-900 text-xs font-extrabold uppercase tracking-wider">
+                      {leoleoProfile?.programmeType || 'Flagship Programme'}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-white/95 text-xs font-bold text-slate-900">
+                      <Briefcase className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Enterprise & Skills Programme</span>
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <p className="text-sm text-slate-700 leading-relaxed">
-                {leoleoProfile?.summary}
-              </p>
-
-              <div className="bg-white rounded-2xl p-4 border border-slate-200 space-y-2">
-                <div className="text-xs font-extrabold uppercase tracking-wider text-[#0F5132]">
-                  Project: {leoleoProfile?.projectName || 'LeoLeo Community Enterprise & Digital Coordination'}
+              {leoleoGallery.length > 1 && (
+                <div className="grid grid-cols-5 gap-1.5 px-4 py-2 bg-white border-b border-slate-200">
+                  {leoleoGallery.map((imgUrl, idx) => (
+                    <button
+                      key={`${imgUrl}-${idx}`}
+                      type="button"
+                      onClick={() => setLeoleoActiveImgIdx(idx)}
+                      className={`h-10 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                        leoleoActiveImgIdx === idx
+                          ? 'border-[#0F5132]'
+                          : 'border-transparent opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={`LeoLeo thumbnail ${idx + 1}`}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  {leoleoProfile?.projectDescription}
-                </p>
-                <div className="pt-2 text-xs text-slate-700">
-                  <strong className="text-slate-900">Support Focus:</strong>{' '}
-                  {leoleoProfile?.supportFocus}
+              )}
+
+              <div className="p-6 sm:p-8 space-y-5">
+                <div>
+                  <h3 className="text-2xl font-extrabold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">
+                    {leoleoProfile?.name || 'LeoLeo'}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1.5">
+                    <span className="inline-flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-[#0F5132]" />
+                      {leoleoProfile?.location || 'Entebbe, Uganda'}
+                    </span>
+                    <span>•</span>
+                    <span className="inline-flex items-center gap-1">
+                      <UserCheck className="w-3.5 h-3.5 text-[#0F5132]" />
+                      Rep:{' '}
+                      <strong className="text-slate-800">
+                        {leoleoProfile?.representativeName || 'Ronnie Tumusiime'}
+                      </strong>{' '}
+                      ({leoleoProfile?.representativeTitle || 'Programme Coordinator'})
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-sm text-slate-700 leading-relaxed">{leoleoProfile?.summary}</p>
+
+                <div className="bg-white rounded-2xl p-4 border border-slate-200 space-y-2">
+                  <div className="text-xs font-extrabold uppercase tracking-wider text-[#0F5132]">
+                    Project:{' '}
+                    {leoleoProfile?.projectName ||
+                      'LeoLeo Community Enterprise & Digital Coordination'}
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {leoleoProfile?.projectDescription}
+                  </p>
+                  <div className="pt-2 text-xs text-slate-700">
+                    <strong className="text-slate-900">Support Focus:</strong>{' '}
+                    {leoleoProfile?.supportFocus}
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 pt-5 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+            <div className="px-6 sm:px-8 pb-6 sm:pb-8 pt-5 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
               <a
                 href={leoleoProfile?.websiteUrl || 'https://leo-leo.ai.studio'}
                 target="_blank"

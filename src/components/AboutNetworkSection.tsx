@@ -1,21 +1,26 @@
 import React from 'react';
 import {
   ArrowRight,
-  Users,
   Building2,
   ShieldCheck,
   CheckCircle2,
   Network,
   Layers,
   Award,
+  Camera,
 } from 'lucide-react';
-import { OPERATING_MODEL_STAGES, CAPACITY_AREAS } from '../data/content';
+import { OPERATING_MODEL_STAGES, CAPACITY_AREAS, DEFAULT_SITE_MEDIA } from '../data/content';
+import { SiteMediaSettings } from '../types';
 
 interface AboutNetworkSectionProps {
+  siteMedia: SiteMediaSettings;
+  onOpenPhotoReplacer: () => void;
   onSelectGroupSlug?: (slug: string) => void;
 }
 
 export const AboutNetworkSection: React.FC<AboutNetworkSectionProps> = ({
+  siteMedia,
+  onOpenPhotoReplacer,
   onSelectGroupSlug,
 }) => {
   const communityGroupNodes = [
@@ -39,24 +44,73 @@ export const AboutNetworkSection: React.FC<AboutNetworkSectionProps> = ({
       className="py-16 sm:py-24 bg-[#FAF9F6] border-b border-slate-200"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
-        {/* 1. Mission Header */}
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#0F5132] mb-3">
-            <Network className="w-4 h-4" />
-            <span>About ENGANDA & Visual Architecture</span>
+        {/* 1. Mission Header with Balanced Editorial Photo Showcase (No Blank White Space) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          <div className="lg:col-span-7 space-y-4">
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#0F5132]">
+              <Network className="w-4 h-4" />
+              <span>About ENGANDA & Visual Architecture</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-['Plus_Jakarta_Sans',sans-serif] leading-tight">
+              One Trusted Umbrella. Multiple Autonomous Community Groups & Programmes.
+            </h2>
+            <p className="text-base sm:text-lg text-slate-700 leading-[1.7]">
+              <strong className="text-slate-900">ENGANDA’s mission</strong> is to connect informal
+              youth and community groups to{' '}
+              <strong className="text-[#0F5132]">
+                skills, structure, finance, visibility, and responsible partnerships
+              </strong>
+              . Rather than replacing grassroots leadership, ENGANDA provides the shared
+              institutional governance and verification bridge that connects community groups to
+              partners.
+            </p>
+            <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-slate-600">
+              <span>15 Verified Public Profiles</span>
+              <span aria-hidden="true">·</span>
+              <span>690 Reconciled Member Records</span>
+              <span aria-hidden="true">·</span>
+              <button
+                type="button"
+                onClick={onOpenPhotoReplacer}
+                className="inline-flex items-center gap-1 font-bold text-[#0F5132] hover:underline cursor-pointer"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                <span>Admin: Replace Section Photos</span>
+              </button>
+            </div>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-['Plus_Jakarta_Sans',sans-serif] leading-tight">
-            One Trusted Umbrella. Multiple Autonomous Community Groups & Programmes.
-          </h2>
-          <p className="mt-4 text-base sm:text-lg text-slate-700 leading-[1.7]">
-            <strong className="text-slate-900">ENGANDA’s mission</strong> is to connect informal
-            youth and community groups to{' '}
-            <strong className="text-[#0F5132]">
-              skills, structure, finance, visibility, and responsible partnerships
-            </strong>
-            . Rather than replacing grassroots leadership, ENGANDA provides the shared institutional
-            governance and verification bridge that connects community groups to partners.
-          </p>
+
+          <div className="lg:col-span-5">
+            <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 shadow-md">
+              <img
+                src={siteMedia.aboutMissionImage || DEFAULT_SITE_MEDIA.aboutMissionImage}
+                alt="ENGANDA Community SACCO Governance and Ledger Review in Entebbe"
+                referrerPolicy="no-referrer"
+                className="w-full h-64 sm:h-72 object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent flex flex-col justify-between p-4">
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={onOpenPhotoReplacer}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-950/80 hover:bg-amber-500 hover:text-slate-950 text-amber-300 border border-white/15 text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    <Camera className="w-3 h-3" />
+                    <span>Replace Photo</span>
+                  </button>
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300">
+                    Community Governance in Action
+                  </span>
+                  <p className="text-xs text-slate-100 mt-0.5 leading-snug">
+                    SACCO leaders and youth committee representatives reviewing weekly member
+                    savings ledgers in Entebbe.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* 2. Infographic 1: The ENGANDA Umbrella Network Diagram */}
@@ -225,7 +279,7 @@ export const AboutNetworkSection: React.FC<AboutNetworkSectionProps> = ({
           </div>
         </div>
 
-        {/* 3. Infographic 2: Three-Stage Operating Model (Organise -> Formalise -> Grow) */}
+        {/* 3. Infographic 2: Three-Stage Operating Model (Organise -> Formalise -> Grow) with AI Visual Banners */}
         <div className="space-y-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
@@ -243,87 +297,144 @@ export const AboutNetworkSection: React.FC<AboutNetworkSectionProps> = ({
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
-            {OPERATING_MODEL_STAGES.map((stage, idx) => (
-              <div
-                key={stage.step}
-                className="relative bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="inline-flex items-center gap-2.5">
-                      <span className="w-10 h-10 rounded-xl bg-[#0F5132] text-white font-extrabold text-sm flex items-center justify-center font-mono">
-                        {stage.step}
-                      </span>
-                      <h4 className="text-xl font-extrabold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">
-                        {stage.title}
-                      </h4>
+            {OPERATING_MODEL_STAGES.map((stage, idx) => {
+              const stageImg =
+                siteMedia[stage.mediaKey] || DEFAULT_SITE_MEDIA[stage.mediaKey];
+              return (
+                <div
+                  key={stage.step}
+                  className="relative bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between"
+                >
+                  <div>
+                    {/* Stage Visual Banner */}
+                    <div className="relative h-44 bg-slate-900 overflow-hidden">
+                      <img
+                        src={stageImg}
+                        alt={`Stage ${stage.step}: ${stage.title}`}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/25 to-transparent flex items-start justify-between p-3.5">
+                        <span className="px-2.5 py-1 rounded-lg bg-[#0F5132] text-white font-extrabold text-xs font-mono shadow-sm">
+                          Stage {stage.step}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={onOpenPhotoReplacer}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-950/80 hover:bg-amber-500 hover:text-slate-950 text-amber-300 text-[10px] font-bold transition-colors cursor-pointer"
+                        >
+                          <Camera className="w-3 h-3" />
+                          <span>Replace</span>
+                        </button>
+                      </div>
                     </div>
-                    {idx < 2 && (
-                      <ArrowRight className="hidden lg:block w-5 h-5 text-amber-600 shrink-0" />
-                    )}
+
+                    <div className="p-6 pb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-xl font-extrabold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">
+                          {stage.title}
+                        </h4>
+                        {idx < 2 && (
+                          <ArrowRight className="hidden lg:block w-5 h-5 text-amber-600 shrink-0" />
+                        )}
+                      </div>
+
+                      <p className="text-xs font-bold uppercase tracking-wider text-amber-700 mb-2">
+                        {stage.tagline}
+                      </p>
+                      <p className="text-sm text-slate-600 leading-relaxed">
+                        {stage.description}
+                      </p>
+                    </div>
                   </div>
 
-                  <p className="text-xs font-bold uppercase tracking-wider text-amber-700 mb-2">
-                    {stage.tagline}
-                  </p>
-                  <p className="text-sm text-slate-600 leading-relaxed mb-6">
-                    {stage.description}
-                  </p>
+                  <div className="px-6 pb-6 pt-4 border-t border-slate-100 space-y-2">
+                    {stage.outcomes.map((outcome) => (
+                      <div key={outcome} className="flex items-start gap-2 text-xs text-slate-700">
+                        <CheckCircle2 className="w-4 h-4 text-[#0F5132] shrink-0 mt-0.5" />
+                        <span className="leading-snug">{outcome}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-
-                <div className="pt-4 border-t border-slate-100 space-y-2">
-                  {stage.outcomes.map((outcome) => (
-                    <div key={outcome} className="flex items-start gap-2 text-xs text-slate-700">
-                      <CheckCircle2 className="w-4 h-4 text-[#0F5132] shrink-0 mt-0.5" />
-                      <span className="leading-snug">{outcome}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* 4. Infographic 3: Three Connected Areas of Capacity */}
+        {/* 4. Infographic 3: Three Connected Areas of Capacity with AI Visual Banners */}
         <div className="bg-[#0B2B1E] text-white rounded-3xl p-6 sm:p-10 lg:p-12 border border-emerald-900 shadow-xl">
-          <div className="max-w-3xl mb-10">
-            <span className="text-xs font-bold uppercase tracking-widest text-amber-400">
-              Infographic 03 • Core Capacity Framework
-            </span>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-white mt-1 font-['Plus_Jakarta_Sans',sans-serif]">
-              Three Connected Areas of Capacity
-            </h3>
-            <p className="text-sm sm:text-base text-emerald-100/85 mt-2 leading-relaxed">
-              Every group and programme within the ENGANDA umbrella builds strength across three
-              mutually reinforcing pillars.
-            </p>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+            <div className="max-w-2xl">
+              <span className="text-xs font-bold uppercase tracking-widest text-amber-400">
+                Infographic 03 • Core Capacity Framework
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-white mt-1 font-['Plus_Jakarta_Sans',sans-serif]">
+                Three Connected Areas of Capacity
+              </h3>
+              <p className="text-sm sm:text-base text-emerald-100/85 mt-2 leading-relaxed">
+                Every group and programme within the ENGANDA umbrella builds strength across three
+                mutually reinforcing pillars.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenPhotoReplacer}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-900 hover:bg-emerald-800 text-amber-300 border border-emerald-700 text-xs font-bold cursor-pointer self-start md:self-auto"
+            >
+              <Camera className="w-3.5 h-3.5" />
+              <span>Admin: Replace Pillar Photos</span>
+            </button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {CAPACITY_AREAS.map((area, index) => {
               const Icon =
                 index === 0 ? Award : index === 1 ? Building2 : ShieldCheck;
+              const pillarImg =
+                siteMedia[area.mediaKey] || DEFAULT_SITE_MEDIA[area.mediaKey];
               return (
                 <div
                   key={area.id}
-                  className="bg-emerald-950/80 border border-emerald-800/80 rounded-2xl p-6 flex flex-col justify-between"
+                  className="bg-emerald-950/80 border border-emerald-800/80 rounded-2xl overflow-hidden flex flex-col justify-between"
                 >
                   <div>
-                    <div className="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 mb-4">
-                      <Icon className="w-5 h-5" />
+                    <div className="relative h-40 bg-slate-900 overflow-hidden">
+                      <img
+                        src={pillarImg}
+                        alt={area.title}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/30 to-transparent flex items-end justify-between p-4">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500/20 backdrop-blur-sm border border-amber-400/40 flex items-center justify-center text-amber-300">
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={onOpenPhotoReplacer}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-950/75 hover:bg-amber-500 hover:text-slate-950 text-amber-300 text-[10px] font-bold transition-colors cursor-pointer"
+                        >
+                          <Camera className="w-3 h-3" />
+                          <span>Replace</span>
+                        </button>
+                      </div>
                     </div>
-                    <h4 className="text-xl font-extrabold text-white font-['Plus_Jakarta_Sans',sans-serif]">
-                      {area.title}
-                    </h4>
-                    <p className="text-xs font-bold uppercase tracking-wider text-amber-400 mt-1">
-                      {area.subtitle}
-                    </p>
-                    <p className="text-sm text-emerald-100/85 mt-3 leading-relaxed">
-                      {area.description}
-                    </p>
+
+                    <div className="p-6 pb-4">
+                      <h4 className="text-xl font-extrabold text-white font-['Plus_Jakarta_Sans',sans-serif]">
+                        {area.title}
+                      </h4>
+                      <p className="text-xs font-bold uppercase tracking-wider text-amber-400 mt-1">
+                        {area.subtitle}
+                      </p>
+                      <p className="text-sm text-emerald-100/85 mt-3 leading-relaxed">
+                        {area.description}
+                      </p>
+                    </div>
                   </div>
 
-                  <ul className="mt-6 pt-4 border-t border-emerald-800/60 space-y-2">
+                  <ul className="px-6 pb-6 pt-4 border-t border-emerald-800/60 space-y-2">
                     {area.highlights.map((item) => (
                       <li
                         key={item}

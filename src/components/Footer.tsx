@@ -259,6 +259,11 @@ export const Footer: React.FC<FooterProps> = ({
                 </a>
               </li>
               <li>
+                <a href="#safaris-events" className="hover:text-white transition-colors">
+                  ENGANDA Safaris &amp; Upcoming Trips
+                </a>
+              </li>
+              <li>
                 <a href="#directory" className="hover:text-white transition-colors">
                   Complete Group Directory (15 Profiles)
                 </a>
@@ -297,6 +302,11 @@ export const Footer: React.FC<FooterProps> = ({
               <li>
                 <a href="#programmes" className="hover:text-white transition-colors">
                   EGYA Association (Entebbe)
+                </a>
+              </li>
+              <li>
+                <a href="#safaris-events" className="hover:text-white transition-colors">
+                  ENGANDA Safaris &amp; Expeditions
                 </a>
               </li>
             </ul>
@@ -342,16 +352,134 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
         </div>
 
-        {/* Bottom Copyright & Privacy Assurance */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-emerald-300/75">
-          <div>
-            &copy; {new Date().getFullYear()} ENGANDA. All rights reserved. Connecting informal
-            youth and community groups to formal opportunity.
+        {/* Institutional Ecosystem & Strategic Partners Logo Strip */}
+        <div className="rounded-2xl bg-[#0B2B1E] border border-emerald-800/80 p-5 sm:p-6 space-y-5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-emerald-800/70 pb-4">
+            <div className="space-y-1">
+              <div className="text-[11px] font-extrabold uppercase tracking-widest text-amber-400">
+                Ecosystem, Municipal &amp; Financial Partners
+              </div>
+              <p className="text-sm sm:text-base font-extrabold text-white tracking-wide break-words">
+                Powered by Enganda, RONSOL, RELWORX, FINCA &amp; ECO Bank
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 rounded-lg bg-emerald-950 border border-emerald-700/80 text-amber-300 text-xs font-extrabold tracking-wide">
+                Enganda
+              </span>
+              <span className="px-3 py-1 rounded-lg bg-emerald-950 border border-emerald-700/80 text-amber-300 text-xs font-extrabold tracking-wide">
+                RONSOL
+              </span>
+              <span className="px-3 py-1 rounded-lg bg-emerald-950 border border-emerald-700/80 text-emerald-100 text-xs font-bold tracking-wide">
+                Entebbe Municipal Council
+              </span>
+            </div>
           </div>
-          <div className="inline-flex items-center gap-1.5">
+
+          {/* Official Partner Logos Row (6 Partners: RELWORX, FINCA, ECO Bank, PLU, GCIC State House, Entebbe Municipal) */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 items-stretch">
+            {/* RELWORX Logo */}
+            <div className="bg-white rounded-xl p-3 border border-slate-200 flex flex-col items-center justify-between gap-2 shadow-sm">
+              <div className="h-12 sm:h-14 w-full flex items-center justify-center">
+                <img
+                  src="/assets/aistudio/relworx_9ec37c45.jfif"
+                  alt="RELWORX Official Logo"
+                  className="max-h-11 sm:max-h-12 w-auto object-contain"
+                />
+              </div>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 text-center">
+                RELWORX
+              </span>
+            </div>
+
+            {/* FINCA Logo */}
+            <div className="bg-white rounded-xl p-3 border border-slate-200 flex flex-col items-center justify-between gap-2 shadow-sm">
+              <div className="h-12 sm:h-14 w-full flex items-center justify-center">
+                <img
+                  src="/assets/aistudio/finca_84848a21.png"
+                  alt="FINCA Official Logo"
+                  className="max-h-11 sm:max-h-12 w-auto object-contain"
+                />
+              </div>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 text-center">
+                FINCA
+              </span>
+            </div>
+
+            {/* ECO Bank Logo */}
+            <div className="bg-white rounded-xl p-3 border border-slate-200 flex flex-col items-center justify-between gap-2 shadow-sm">
+              <div className="h-12 sm:h-14 w-full flex items-center justify-center">
+                <img
+                  src="/assets/aistudio/eco_bank_551a5850.png"
+                  alt="ECO Bank (Ecobank) Official Logo"
+                  className="max-h-11 sm:max-h-12 w-auto object-contain"
+                />
+              </div>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 text-center">
+                ECO Bank
+              </span>
+            </div>
+
+            {/* Patriotic League of Uganda (PLU) Logo */}
+            <div className="bg-white rounded-xl p-3 border border-slate-200 flex flex-col items-center justify-between gap-2 shadow-sm">
+              <div className="h-12 sm:h-14 w-full flex items-center justify-center">
+                <img
+                  src="/assets/aistudio/PLU_6740178b.jfif"
+                  alt="Patriotic League of Uganda (PLU) Official Logo"
+                  className="max-h-12 sm:max-h-14 w-auto object-contain rounded"
+                />
+              </div>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 text-center">
+                PLU Uganda
+              </span>
+            </div>
+
+            {/* GCIC • State House Logo */}
+            <div className="bg-white rounded-xl p-3 border border-slate-200 flex flex-col items-center justify-between gap-2 shadow-sm">
+              <div className="h-12 sm:h-14 w-full flex items-center justify-center">
+                <img
+                  src="/assets/aistudio/gcic_2d3a48ab.jfif"
+                  alt="GCIC State House Official Logo"
+                  className="max-h-12 sm:max-h-14 w-auto object-contain rounded"
+                />
+              </div>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 text-center">
+                GCIC • State House
+              </span>
+            </div>
+
+            {/* Entebbe Municipal Council Logo */}
+            <div className="bg-white rounded-xl p-3 border border-slate-200 flex flex-col items-center justify-between gap-2 shadow-sm">
+              <div className="h-12 sm:h-14 w-full flex items-center justify-center">
+                <img
+                  src="/assets/aistudio/ebb_muni_b92e383f.jfif"
+                  alt="Entebbe Municipal Council Official Crest"
+                  className="max-h-12 sm:max-h-14 w-auto object-contain"
+                />
+              </div>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 text-center">
+                Entebbe Municipal
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Copyright & Privacy Assurance */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-emerald-300/85">
+          <div className="space-y-1">
+            <div>
+              &copy; {new Date().getFullYear()} ENGANDA. All rights reserved. Connecting informal
+              youth and community groups to formal opportunity.
+            </div>
+            <div className="font-extrabold text-amber-300">
+              Powered by Enganda, RONSOL, RELWORX, FINCA &amp; ECO Bank
+            </div>
+          </div>
+          <div className="inline-flex items-center gap-1.5 shrink-0">
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>
-              Server-side member privacy & Firestore rules enforced • No online payments processed
+              Server-side member privacy &amp; Firestore rules enforced • No online payments processed
             </span>
           </div>
         </div>

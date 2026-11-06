@@ -11,15 +11,61 @@ export interface SponsorshipPackage {
   description: string;
 }
 
+export interface SiteMediaSettings {
+  heroBannerImage: string;
+  aboutMissionImage: string;
+  organiseStageImage: string;
+  formaliseStageImage: string;
+  growStageImage: string;
+  humanCapacityImage: string;
+  economicStructureImage: string;
+  civicAgencyImage: string;
+  sizStewardshipImage: string;
+  egyaBannerImage: string;
+  leoleoBannerImage: string;
+  founderMugisaImage: string;
+  founderRonnieImage: string;
+}
+
+export type SafariEventCategory =
+  | 'ENGANDA Safari & Eco-Trip'
+  | 'Youth Sports & Gala'
+  | 'SACCO & Enterprise Exchange'
+  | 'Tree Stewardship & Conservation'
+  | 'Community Cultural Expedition';
+
+export interface SafariEventItem {
+  id: string;
+  code: string;
+  title: string;
+  category: SafariEventCategory;
+  dateLabel: string;
+  durationLabel: string;
+  location: string;
+  feeOrSponsorshipLabel: string;
+  organizer: string;
+  summary: string;
+  highlights: string[];
+  imageUrl: string;
+  showOnCarousel: boolean;
+  showInUpcoming: boolean;
+  ctaLabel: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /**
  * Whitelisted Public Profile returned by /api/directory.
  * Never includes private member lists, phones, emails, or National IDs.
  */
 export interface PublicGroupProfile {
   id: string;
+  uniqueGroupCode: string;
   slug: string;
   name: string;
   programmeType: ProgrammeType;
+  sector: string;
+  companyAffiliation?: string;
   isProgrammeOnly: boolean;
   location: string;
   summary: string;
@@ -32,6 +78,7 @@ export interface PublicGroupProfile {
   websiteUrl: string;
   activities: string[];
   sponsorshipPackages: SponsorshipPackage[];
+  galleryImages: string[];
   mapCoords?: {
     x: number;
     y: number;
@@ -47,18 +94,23 @@ export interface DirectoryMeta {
   totalSuppliedMemberRecords: number;
   locations: string[];
   programmeTypes: string[];
+  sectors: string[];
   representatives: string[];
 }
 
 export interface PrivateMemberRecord {
   id: string;
+  uniqueId: string;
   groupId: string;
   groupName?: string;
+  company: string;
+  photoUrl: string;
   fullName: string;
   title: string;
   phone: string;
   email: string;
   nationalId: string;
+  skills: string[];
   location: string;
   createdAt: string;
   updatedAt: string;

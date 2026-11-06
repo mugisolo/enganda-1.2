@@ -20,6 +20,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navLinks = [
     { label: 'Overview', href: '#home' },
+    { label: 'Safaris & Events', href: '#safaris-events' },
     { label: 'About', href: '#about-network' },
     { label: 'Impact & Map', href: '#impact-metrics' },
     { label: 'Programmes', href: '#programmes' },
